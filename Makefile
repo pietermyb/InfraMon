@@ -95,13 +95,28 @@ clean:
 
 # Database
 db-init:
-	cd backend && alembic upgrade head
+	cd backend && python -m alembic upgrade head
 
 db-migrate:
-	cd backend && alembic revision --autogenerate -m "Auto migration"
+	cd backend && python -m alembic revision --autogenerate -m "Auto migration"
 
 db-upgrade:
-	cd backend && alembic upgrade head
+	cd backend && python -m alembic upgrade head
+
+db-seed:
+	cd backend && python -m scripts.init_db
+
+db-backup:
+	cd backend && python -m scripts.backup_db backup
+
+db-restore:
+	cd backend && python -m scripts.backup_db restore $(BACKUP_FILE)
+
+db-list-backups:
+	cd backend && python -m scripts.backup_db list
+
+db-cleanup-backups:
+	cd backend && python -m scripts.backup_db cleanup
 
 # Help
 help:
