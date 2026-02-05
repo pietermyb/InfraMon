@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: inframon-backend
+    ports:
+      - "8065:8000"
+    volumes:
+      - inframon_data:/opt/InfraMon/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/hostfs:ro
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/inframon.db
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key-in-production}
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - HOST_FS_ROOT=/hostfs
+      - CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-auto}
+      - PODMAN_SOCKET_PATH=${PODMAN_SOCKET_PATH:-/run/user/0/podman/podman.sock}
+      - COLIMA_SOCKET_PATH=${COLIMA_SOCKET_PATH:-/run/colima/socket/docker.sock}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - inframon-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: inframon-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - inframon-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+networks:
+  inframon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  inframon_data:
+    driver: local
