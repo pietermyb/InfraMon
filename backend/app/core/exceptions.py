@@ -1,6 +1,6 @@
 """Custom exceptions for the application."""
 
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import HTTPException, status
 

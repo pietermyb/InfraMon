@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.container import Container
 from app.models.container_group import ContainerGroup
-from app.schemas import ContainerGroupCreate, ContainerGroupUpdate, ContainerResponse
+from app.schemas import ContainerGroupCreate, ContainerGroupUpdate
 
 
 class ContainerService:

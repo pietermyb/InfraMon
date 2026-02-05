@@ -387,5 +387,58 @@ export function useContainers() {
 1. Run `make pre-push` to validate all changes
 2. Ensure all tests pass
 3. Verify linting passes
-4. Check coverage remains above 80%
+4. Check coverage remains above the threshold
 5. Ensure no sensitive data in commits
+
+## Git Commit Rules
+
+### Never Skip Verification
+- **NEVER use `--no-verify` or `--no-hooks`** to bypass pre-commit or pre-push hooks
+- **ALWAYS** let hooks run their full validation
+- If hooks fail, fix the issues rather than bypassing them
+
+### Always Stage All Relevant Files
+- **NEVER** skip files from a commit intentionally
+- Stage all files that are part of the feature/fix
+- Use `git add -A` or stage files individually for clarity
+- Review `git status` before committing to ensure nothing is unintentionally left out
+
+### Commit Message Requirements
+- Write clear, descriptive commit messages
+- Include context about what changed and why
+- Reference issue numbers if applicable
+
+### Pre-commit Hook Fixes
+If pre-commit hooks auto-modify files (black, isort, end-of-file-fixer):
+1. Let the hooks make their changes
+2. Stage the modified files: `git add <files>`
+3. Amend the commit: `git commit --amend --no-edit`
+4. Never skip hooks to avoid auto-formatting issues
+
+### Proper Commit Workflow
+```bash
+# 1. Check status
+git status
+
+# 2. Stage all relevant files
+git add -A  # or git add <specific-files>
+
+# 3. Review changes
+git diff --cached
+
+# 4. Commit
+git commit -m "Clear commit message"
+
+# 5. If hooks modify files, amend
+git add <modified-files>
+git commit --amend --no-edit
+
+# 6. Push
+git push origin <branch>
+```
+
+### Never Do This
+- ❌ `git commit --no-verify`
+- ❌ `git push --no-verify`
+- ❌ Skipping files from commit intentionally
+- ❌ Bypassing pre-push hooks

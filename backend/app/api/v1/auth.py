@@ -1,7 +1,5 @@
 """Authentication API endpoints."""
 
-from datetime import timedelta
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
@@ -25,9 +23,9 @@ from app.schemas.user import (
     LogoutResponse,
     RefreshTokenRequest,
     TokenRefreshResponse,
-    UserLogin,
     UserResponse,
 )
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

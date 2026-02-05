@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import declared_attr

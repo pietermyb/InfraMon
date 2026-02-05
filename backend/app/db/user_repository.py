@@ -3,11 +3,11 @@
 from typing import Optional
 
 from passlib.context import CryptContext
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.repository import Repository
 from app.models.user import User
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

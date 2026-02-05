@@ -242,7 +242,36 @@ make test-backend
 
 # Run frontend tests
 make test-frontend
+
+# Run E2E tests
+make test-e2e
 ```
+
+## Code Quality
+
+```bash
+# Run all linters (backend + frontend)
+make lint
+
+# Check linting without making changes
+make lint-check
+
+# Format code automatically
+make format
+
+# Full CI check before pushing
+make ci-check
+```
+
+## Pre-commit Hooks
+
+Install pre-commit hooks for automatic validation before commits:
+
+```bash
+make setup
+```
+
+This will install pre-commit hooks that run lint checks before each commit.
 
 ## Building for Production
 

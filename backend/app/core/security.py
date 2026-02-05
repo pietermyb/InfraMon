@@ -2,7 +2,7 @@ import logging
 import re
 import time
 from datetime import datetime, timedelta
-from typing import Awaitable, Callable, Optional
+from typing import Callable, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -16,6 +16,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
 from app.db.database import get_db
 from app.models.user import User
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_PREFIX}/auth/login")
