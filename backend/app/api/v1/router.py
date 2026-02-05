@@ -190,11 +190,11 @@ async def start_container(
 ):
     """Start a container."""
     docker_service = DockerService(db)
-    success = await docker_service.start_container(container_id)
+    success, message = await docker_service.start_container(container_id)
     
     return ContainerActionResponse(
         success=success,
-        message="Container started successfully" if success else "Failed to start container",
+        message=message,
         container_id=container_id,
     )
 
@@ -208,11 +208,11 @@ async def stop_container(
 ):
     """Stop a container."""
     docker_service = DockerService(db)
-    success = await docker_service.stop_container(container_id, timeout)
+    success, message = await docker_service.stop_container(container_id, timeout)
     
     return ContainerActionResponse(
         success=success,
-        message="Container stopped successfully" if success else "Failed to stop container",
+        message=message,
         container_id=container_id,
     )
 
@@ -227,11 +227,11 @@ async def restart_container(
 ):
     """Restart a container."""
     docker_service = DockerService(db)
-    success = await docker_service.restart_container(container_id, timeout, force)
+    success, message = await docker_service.restart_container(container_id, timeout, force)
     
     return ContainerActionResponse(
         success=success,
-        message="Container restarted successfully" if success else "Failed to restart container",
+        message=message,
         container_id=container_id,
     )
 
@@ -246,11 +246,11 @@ async def remove_container(
 ):
     """Remove a container."""
     docker_service = DockerService(db)
-    success = await docker_service.remove_container(container_id, force, volumes)
+    success, message = await docker_service.remove_container(container_id, force, volumes)
     
     return ContainerActionResponse(
         success=success,
-        message="Container removed successfully" if success else "Failed to remove container",
+        message=message,
         container_id=container_id,
     )
 

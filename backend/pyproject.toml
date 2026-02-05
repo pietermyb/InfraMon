@@ -66,7 +66,15 @@ addopts = "-v --tb=short"
 
 [tool.coverage.run]
 source = ["app"]
-omit = ["tests/*"]
+omit = ["tests/*", "*/__pycache__/*"]
+branch = true
+parallel = true
 
 [tool.coverage.report]
-exclude_lines = ["pragma: no cover", "def __repr__", "raise NotImplementedError"]
+exclude_lines = ["pragma: no cover", "def __repr__", "raise NotImplementedError", "if TYPE_CHECKING:"]
+include = ["app/**/*.py"]
+fail_under = 80
+show_missing = true
+
+[tool.coverage.html]
+title = "InfraMon Coverage Report"
