@@ -1,4 +1,60 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, CancelTokenSource } from 'axios'
+import type {
+  User,
+  LoginRequest,
+  LoginResponse,
+  ContainerResponse,
+  ContainerDetailResponse,
+  ContainerListResponse,
+  ContainerActionResponse,
+  ContainerLogsResponse,
+  ContainerStatsResponse,
+  FormattedStats,
+  ContainerDiffResponse,
+  ProcessResponse,
+  FilesystemResponse,
+  ComposeInfo,
+  ExecResponse,
+  ShellInitResponse,
+  LogsParams,
+  ContainerGroupResponse,
+  ContainerGroupDetailResponse,
+  SystemStatsResponse,
+  SystemInfoResponse,
+  DiskPartition,
+  NetworkInterface,
+  NetworkConnection,
+  DashboardResponse,
+  SystemStatsHistoryResponse,
+  ContainerStatsHistoryResponse,
+  TopConsumersResponse,
+  CompareResponse,
+  TrendsResponse,
+  GroupStatsResponse,
+  PruneResponse,
+  ExportResponse,
+  CreateGroupRequest,
+  UpdateGroupRequest,
+  CreateUserRequest,
+  UpdateUserRequest,
+  ChangePasswordRequest,
+  UserListResponse,
+  UserDetailResponse,
+  DockerInfo,
+  DockerVersion,
+  ComposeProject,
+  ComposeFileResponse,
+  ComposeValidationResponse,
+} from '../types'
+
+interface LogsParamsInternal extends LogsParams {
+  stdout?: boolean
+  stderr?: boolean
+  timestamps?: boolean
+  tail?: string
+  since?: string
+  until?: string
+}
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
@@ -95,14 +151,20 @@ class ApiClient {
     this.cancelTokens.clear()
   }
 
-  async get<T>(url: string, params?: Record<string, unknown>, requestId?: string): Promise<T> {
+  async get<T>(url: string, params?: Record<string, unknown> | undefined, requestId?: string): Promise<T> {
     const config = requestId ? { params, cancelToken: this.generateCancelToken(requestId).token } : { params }
     const response = await this.client.get<T>(url, config)
     return response.data
   }
 
-  async post<T>(url: string, data?: unknown, requestId?: string): Promise<T> {
-    const config = requestId ? { cancelToken: this.generateCancelToken(requestId).token } : {}
+  async post<T>(url: string, data?: unknown, options?: { requestId?: string; params?: Record<string, unknown> }): Promise<T> {
+    const config: Record<string, unknown> = {}
+    if (options?.requestId) {
+      config.cancelToken = this.generateCancelToken(options.requestId).token
+    }
+    if (options?.params) {
+      config.params = options.params
+    }
     const response = await this.client.post<T>(url, data, config)
     return response.data
   }
@@ -117,8 +179,8 @@ class ApiClient {
     return response.data
   }
 
-  async delete<T>(url: string): Promise<T> {
-    const response = await this.client.delete<T>(url)
+  async delete<T>(url: string, params?: Record<string, unknown>): Promise<T> {
+    const response = await this.client.delete<T>(url, { params })
     return response.data
   }
 
@@ -180,7 +242,7 @@ export const containerService = {
     api.put<ContainerActionResponse>(`/containers/${id}/rename`, { new_name: newName }),
   update: (id: string, memoryLimit?: number, cpuShares?: number) =>
     api.patch<ContainerActionResponse>(`/containers/${id}`, { memory_limit: memoryLimit, cpu_shares: cpuShares }),
-  logs: (id: string, params?: LogsParams) => api.get<{ logs: string }>(`/containers/${id}/logs`, params),
+  logs: (id: string, params?: LogsParams) => api.get<{ logs: string }>(`/containers/${id}/logs`, params as Record<string, unknown>),
   stats: (id: string) => api.get<ContainerStatsResponse>(`/containers/${id}/stats`),
   statsFormatted: (id: string) => api.get<FormattedStats>(`/containers/${id}/stats/formatted`),
   inspect: (id: string) => api.get<Record<string, unknown>>(`/containers/${id}/inspect`),
@@ -221,10 +283,10 @@ export const statsService = {
 }
 
 export const groupService = {
-  list: () => api.get<GroupResponse[]>('/groups'),
-  get: (id: number) => api.get<GroupDetailResponse>(`/groups/${id}`),
-  create: (data: CreateGroupRequest) => api.post<GroupResponse>('/groups', data),
-  update: (id: number, data: UpdateGroupRequest) => api.put<GroupResponse>(`/groups/${id}`, data),
+  list: () => api.get<ContainerGroupResponse[]>('/groups'),
+  get: (id: number) => api.get<ContainerGroupDetailResponse>(`/groups/${id}`),
+  create: (data: CreateGroupRequest) => api.post<ContainerGroupResponse>('/groups', data),
+  update: (id: number, data: UpdateGroupRequest) => api.put<ContainerGroupResponse>(`/groups/${id}`, data),
   delete: (id: number) => api.delete(`/groups/${id}`),
 }
 
@@ -246,11 +308,9 @@ export const userService = {
   list: (page = 1, pageSize = 20) =>
     api.get<UserListResponse>('/users', { params: { page, page_size: pageSize } }),
   get: (id: number) => api.get<UserDetailResponse>(`/users/${id}`),
-  create: (data: CreateUserRequest) => api.post<UserResponse>('/users', data),
-  update: (id: number, data: UpdateUserRequest) => api.put<UserResponse>(`/users/${id}`, data),
+  create: (data: CreateUserRequest) => api.post<User>('/users', data),
+  update: (id: number, data: UpdateUserRequest) => api.put<UserDetailResponse>(`/users/${id}`, data),
   delete: (id: number) => api.delete(`/users/${id}`),
   changePassword: (id: number, data: ChangePasswordRequest) =>
     api.post(`/users/${id}/change-password`, data),
 }
-
-export type { User }

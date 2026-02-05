@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -18,13 +16,7 @@ body {
   min-height: 100vh;
 }
 
-@layer base {
-  .dark {
-    color-scheme: dark;
-  }
-}
-
-@layer components {
+@layer utilities {
   .animate-slide-in {
     animation: slideIn 0.3s ease-out;
   }
@@ -79,24 +71,6 @@ body {
     background-color: rgba(156, 163, 175, 0.8);
   }
 
-  .glass {
-    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg;
-  }
-
-  .card-hover {
-    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400;
-  }
-
-  .skeleton {
-    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
-  }
-}
-
-@layer utilities {
   .text-balance {
     text-wrap: balance;
   }
@@ -108,10 +82,6 @@ body {
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
-  }
-
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900;
   }
 
   .transition-height {
