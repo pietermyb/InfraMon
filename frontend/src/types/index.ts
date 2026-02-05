@@ -28,6 +28,8 @@ export interface ContainerResponse {
   status: string
   group_id: number | null
   docker_compose_path?: string
+  ports?: Record<string, any>
+  labels?: Record<string, any>
   created_at: string
   updated_at: string
 }

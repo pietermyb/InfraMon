@@ -8,20 +8,17 @@ import { RefreshCw, LayoutGrid, Box, Activity } from 'lucide-react'
 import { Button, Card, Spinner } from '../components/ui'
 
 export default function ContainersPage() {
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [selectedGroupName, setSelectedGroupName] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   const { data: containerData, isLoading } = useQuery<ContainerListResponse>({
-    queryKey: ['containers', selectedGroupId],
+    queryKey: ['containers'],
     queryFn: async () => {
       const response = await api.get('/containers', {
         params: {
           all_containers: true,
-          group_id: selectedGroupId || undefined
         },
       })
-      // The API returns { success: true, data: { containers: [...], ... } }
-      // based on the previous view_file of ContainersPage.tsx
       return (response.data as any).data
     },
     refetchInterval: 10000,
@@ -91,8 +88,9 @@ export default function ContainersPage() {
         <aside className="md:col-span-1 lg:col-span-1 space-y-6">
           <Card padding="sm" className="sticky top-6">
             <ContainerGroups
-              selectedGroupId={selectedGroupId}
-              onSelectGroup={setSelectedGroupId}
+              containers={containerData?.containers || []}
+              selectedGroupName={selectedGroupName}
+              onSelectGroup={setSelectedGroupName}
             />
           </Card>
 
@@ -122,7 +120,17 @@ export default function ContainersPage() {
 
         <main className="md:col-span-3 lg:col-span-4 transition-all duration-300">
           <ContainerList
-            containers={containerData?.containers || []}
+            containers={(containerData?.containers || []).filter(c => {
+              if (!selectedGroupName) return true;
+              const labels = (c as any).labels || {};
+              const project = labels['com.docker.compose.project'] || labels['com.docker.stack.namespace'];
+              if (project) return project === selectedGroupName;
+
+              const name = c.name.replace(/^\//, '');
+              const parts = name.split(/[-_]/);
+              const prefix = parts.length > 1 ? parts[0] : 'Independent';
+              return prefix === selectedGroupName;
+            })}
             onStart={(id) => startMutation.mutate(id)}
             onStop={(id) => stopMutation.mutate(id)}
             onRestart={(id) => restartMutation.mutate(id)}

@@ -4,22 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
 import { ContainerDetailResponse } from '../types'
 import {
-  Box,
-  Activity,
-  Terminal as TerminalIcon,
-  FileText,
-  Search,
-  Settings,
-  Layout,
-  Layers,
-  Play,
-  Square,
-  RefreshCw,
-  Trash2,
-  ExternalLink,
-  ChevronLeft
+  Box, Activity, Terminal as TerminalIcon, FileText, Search, Settings,
+  Layout, Layers, Play, Square, RefreshCw, Trash2, ExternalLink, ChevronLeft
 } from 'lucide-react'
-import { Button, Card, Spinner, Badge, Modal } from '../components/ui'
+// Last updated: 2026-02-05 12:51
+import { Button, Card, Spinner, Badge } from '../components/ui'
 import LogViewer from '../components/containers/LogViewer'
 import Terminal from '../components/containers/Terminal'
 import ContainerStats from '../components/containers/ContainerStats'
@@ -119,6 +108,34 @@ export default function ContainerDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+          {(() => {
+            const ports = (container as any).ports || {};
+            const mappedPorts = Object.entries(ports)
+              .filter(([_, hostMappings]) => hostMappings && Array.isArray(hostMappings) && hostMappings.length > 0)
+              .map(([containerPort, hostMappings]) => ({
+                containerPort,
+                hostPort: (hostMappings as any)[0].HostPort,
+                proto: containerPort.includes('/') ? containerPort.split('/')[1] : 'tcp'
+              }))
+              .filter(p => p.proto === 'tcp');
+
+            if (mappedPorts.length > 0) {
+              const webPort = mappedPorts.find(p => ['80', '443', '8080', '3000', '5000', '8000'].some(wp => p.containerPort.startsWith(wp))) || mappedPorts[0];
+              const protocol = webPort.containerPort.startsWith('443') ? 'https' : 'http';
+              const url = `${protocol}://${window.location.hostname}:${webPort.hostPort}`;
+
+              return (
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="secondary" size="sm" className="text-blue-600 border-blue-100 dark:border-blue-900/30">
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    Open
+                  </Button>
+                </a>
+              );
+            }
+            return null;
+          })()}
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
           {container.status === 'running' ? (
             <Button variant="secondary" size="sm" onClick={() => stopMutation.mutate()} isLoading={stopMutation.isPending}>
               <Square className="h-3.5 w-3.5 mr-1.5 fill-current" />

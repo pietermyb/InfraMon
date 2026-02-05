@@ -91,8 +91,8 @@ class DockerService:
                 compose_file = await self.find_compose_file(container)
                 image_name = container.image.tags[0] if container.image.tags else container.image.id
                 result.append({
-                    "id": container.id,
-                    "short_id": container.short_id,
+                    "id": 0,  # Placeholder for database ID if not synced
+                    "container_id": container.id,
                     "name": container.name,
                     "image": image_name,
                     "status": container.status,

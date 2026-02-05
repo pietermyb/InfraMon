@@ -49,9 +49,9 @@ export default function ContainerList({
         return containers
             .filter((c) => {
                 const matchesSearch =
-                    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    c.image.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    c.container_id.toLowerCase().includes(searchTerm.toLowerCase())
+                    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    c.image?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    c.container_id?.toLowerCase().includes(searchTerm.toLowerCase())
                 const matchesStatus = statusFilter === 'all' || c.status === statusFilter
                 return matchesSearch && matchesStatus
             })
@@ -114,11 +114,11 @@ export default function ContainerList({
 
     const handleExport = () => {
         const data = filteredAndSortedContainers.map(c => ({
-            name: c.name,
-            image: c.image,
-            status: c.status,
-            id: c.container_id,
-            created: c.created_at
+            name: c.name || '-',
+            image: c.image || '-',
+            status: c.status || '-',
+            id: c.container_id || '-',
+            created: c.created_at || '-'
         }))
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
@@ -173,11 +173,11 @@ export default function ContainerList({
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <div className="overflow-x-auto scrollbar-thin">
+                    <table className="min-w-[1000px] w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left">
+                                <th scope="col" className="w-14 px-6 py-3 text-left whitespace-nowrap">
                                     <input
                                         type="checkbox"
                                         checked={selectedIds.size === filteredAndSortedContainers.length && filteredAndSortedContainers.length > 0}
@@ -187,7 +187,7 @@ export default function ContainerList({
                                 </th>
                                 <th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer group"
+                                    className="w-80 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer group whitespace-nowrap"
                                     onClick={() => toggleSort('name')}
                                 >
                                     <div className="flex items-center space-x-1">
@@ -203,7 +203,7 @@ export default function ContainerList({
                                 </th>
                                 <th
                                     scope="col"
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer group"
+                                    className="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer group whitespace-nowrap"
                                     onClick={() => toggleSort('status')}
                                 >
                                     <div className="flex items-center space-x-1">
@@ -213,13 +213,13 @@ export default function ContainerList({
                                         )}
                                     </div>
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th scope="col" className="w-auto min-w-[300px] px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
                                     Image
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
                                     IP Address
                                 </th>
-                                <th scope="col" className="relative px-6 py-3">
+                                <th scope="col" className="w-52 relative px-6 py-3 whitespace-nowrap">
                                     <span className="sr-only">Actions</span>
                                 </th>
                             </tr>
@@ -229,8 +229,10 @@ export default function ContainerList({
                                 <tr
                                     key={container.container_id}
                                     className={clsx(
-                                        'hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors',
-                                        selectedIds.has(container.container_id) && 'bg-primary-50/50 dark:bg-primary-900/10'
+                                        'transition-all duration-150',
+                                        selectedIds.has(container.container_id)
+                                            ? 'bg-primary-50 dark:bg-primary-900/40'
+                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                                     )}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -241,16 +243,17 @@ export default function ContainerList({
                                             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                                         />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
+                                    <td className="px-6 py-4 whitespace-nowrap overflow-hidden">
+                                        <div className="flex flex-col max-w-full">
                                             <Link
                                                 to={`/containers/${container.container_id}`}
-                                                className="text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400"
+                                                className="text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 truncate block"
+                                                title={container.name?.replace(/^\//, '')}
                                             >
-                                                {container.name.replace(/^\//, '')}
+                                                {container.name?.replace(/^\//, '') || 'Unknown'}
                                             </Link>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                                                {container.container_id.slice(0, 12)}
+                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
+                                                {container.container_id?.slice(0, 12)}
                                             </span>
                                         </div>
                                     </td>
@@ -259,8 +262,8 @@ export default function ContainerList({
                                             {container.status}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900 dark:text-gray-100 max-w-xs truncate" title={container.image}>
+                                    <td className="px-6 py-4 whitespace-nowrap overflow-hidden">
+                                        <div className="text-sm text-gray-900 dark:text-gray-100 truncate" title={container.image}>
                                             {container.image}
                                         </div>
                                     </td>
@@ -272,6 +275,35 @@ export default function ContainerList({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end space-x-2">
+                                            {(() => {
+                                                const ports = container.ports || {};
+                                                const mappedPorts = Object.entries(ports)
+                                                    .filter(([_, hostMappings]) => hostMappings && Array.isArray(hostMappings) && hostMappings.length > 0)
+                                                    .map(([containerPort, hostMappings]) => ({
+                                                        containerPort,
+                                                        hostPort: (hostMappings as any)[0].HostPort,
+                                                        proto: containerPort.includes('/') ? containerPort.split('/')[1] : 'tcp'
+                                                    }))
+                                                    .filter(p => p.proto === 'tcp');
+
+                                                if (mappedPorts.length > 0) {
+                                                    // Prefer common web ports
+                                                    const webPort = mappedPorts.find(p => ['80', '443', '8080', '3000', '5000', '8000'].some(wp => p.containerPort.startsWith(wp))) || mappedPorts[0];
+                                                    const protocol = webPort.containerPort.startsWith('443') ? 'https' : 'http';
+                                                    const url = `${protocol}://${window.location.hostname}:${webPort.hostPort}`;
+
+                                                    return (
+                                                        <Tooltip content={`Open in Browser (${webPort.hostPort})`}>
+                                                            <a href={url} target="_blank" rel="noopener noreferrer">
+                                                                <Button variant="ghost" size="sm" className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                                    <ExternalLink className="h-4 w-4" />
+                                                                </Button>
+                                                            </a>
+                                                        </Tooltip>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
                                             <Tooltip content="Live Logs">
                                                 <Link to={`/containers/${container.container_id}?tab=logs`}>
                                                     <Button variant="ghost" size="sm" className="p-1.5">

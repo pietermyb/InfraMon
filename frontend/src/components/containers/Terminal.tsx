@@ -116,7 +116,7 @@ export default function Terminal({ containerId }: TerminalProps) {
             <div className="flex items-center justify-between bg-gray-800 p-3 rounded-t-lg border-b border-gray-700">
                 <div className="flex items-center space-x-3">
                     <TerminalIcon className="h-4 w-4 text-gray-400" />
-                    <h3 className="text-sm font-medium text-gray-200">Terminal — {containerId.slice(0, 12)}</h3>
+                    <h3 className="text-sm font-medium text-gray-200">Terminal — {containerId?.slice(0, 12)}</h3>
                     <div className="flex items-center space-x-2 px-2 py-0.5 bg-gray-900 rounded-full border border-gray-700">
                         <div className={clsx(
                             "h-2 w-2 rounded-full",

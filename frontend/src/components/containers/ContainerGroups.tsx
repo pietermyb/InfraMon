@@ -1,27 +1,48 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { Card, Badge, Spinner, Button } from '../ui'
 import api from '../../api/client'
-import { ContainerGroupResponse } from '../../types'
+import { ContainerResponse } from '../../types'
 import { Folder, FolderPlus, MoreHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface ContainerGroupsProps {
-    selectedGroupId: number | null
-    onSelectGroup: (groupId: number | null) => void
+    containers: ContainerResponse[]
+    selectedGroupName: string | null
+    onSelectGroup: (groupName: string | null) => void
 }
 
-export default function ContainerGroups({ selectedGroupId, onSelectGroup }: ContainerGroupsProps) {
-    const { data: groups, isLoading } = useQuery<ContainerGroupResponse[]>({
-        queryKey: ['container-groups'],
-        queryFn: async () => {
-            const response = await api.get('/containers/groups')
-            return response.data
-        }
-    })
+export default function ContainerGroups({ containers, selectedGroupName, onSelectGroup }: ContainerGroupsProps) {
+    const groups = useMemo(() => {
+        const map = new Map<string, { name: string, count: number, color: string }>();
 
-    if (isLoading) {
-        return <div className="flex justify-center p-4"><Spinner size="sm" /></div>
-    }
+        // Colors for detected groups
+        const colors = [
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
+            '#8B5CF6', '#EC4899', '#06B6D4', '#6366F1'
+        ];
+
+        containers.forEach((container, idx) => {
+            const name = container.name.replace(/^\//, '');
+            // 1. Docker Compose Project Label (Standard)
+            // 2. Fallback to prefix matching
+            const labels = (container as any).labels || {};
+            let groupName = labels['com.docker.compose.project'] ||
+                labels['com.docker.stack.namespace'];
+
+            if (!groupName) {
+                const parts = name.split(/[-_]/);
+                groupName = parts.length > 1 ? parts[0] : 'Independent';
+            }
+
+            if (!map.has(groupName)) {
+                const colorIdx = map.size % colors.length;
+                map.set(groupName, { name: groupName, count: 0, color: colors[colorIdx] });
+            }
+            map.get(groupName)!.count++;
+        });
+
+        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    }, [containers]);
 
     return (
         <div className="space-y-4">
@@ -37,30 +58,26 @@ export default function ContainerGroups({ selectedGroupId, onSelectGroup }: Cont
                     onClick={() => onSelectGroup(null)}
                     className={clsx(
                         "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
-                        selectedGroupId === null
+                        selectedGroupName === null
                             ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 border-l-4 border-primary-600"
                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200 border-l-4 border-transparent"
                     )}
                 >
                     <div className="flex items-center">
-                        <LayoutGrid className={clsx(
-                            "mr-3 h-4 w-4",
-                            selectedGroupId === null ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-                        )} />
-                        All Containers
+                        All Projects
                     </div>
-                    <Badge variant={selectedGroupId === null ? 'info' : 'default'} size="sm">
-                        ALL
+                    <Badge variant={selectedGroupName === null ? 'info' : 'default'} size="sm">
+                        {containers.length}
                     </Badge>
                 </button>
 
-                {groups?.map((group) => (
+                {groups.map((group) => (
                     <button
-                        key={group.id}
-                        onClick={() => onSelectGroup(group.id)}
+                        key={group.name}
+                        onClick={() => onSelectGroup(group.name)}
                         className={clsx(
                             "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
-                            selectedGroupId === group.id
+                            selectedGroupName === group.name
                                 ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 border-l-4 border-primary-600"
                                 : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200 border-l-4 border-transparent"
                         )}
@@ -68,19 +85,22 @@ export default function ContainerGroups({ selectedGroupId, onSelectGroup }: Cont
                         <div className="flex items-center">
                             <Folder className={clsx(
                                 "mr-3 h-4 w-4",
-                                selectedGroupId === group.id ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
-                            )} style={{ color: selectedGroupId === group.id ? undefined : group.color }} />
+                                selectedGroupName === group.name ? "text-primary-500" : "text-gray-400 group-hover:text-gray-500"
+                            )} style={{ color: selectedGroupName === group.name ? undefined : group.color }} />
                             {group.name}
                         </div>
-                        <ChevronRight className={clsx(
-                            "h-3.5 w-3.5 transition-transform",
-                            selectedGroupId === group.id ? "rotate-90 text-primary-500" : "text-gray-300 opacity-0 group-hover:opacity-100"
-                        )} />
+                        <div className="flex items-center space-x-2">
+                            <span className="text-[10px] text-gray-400 font-bold">{group.count}</span>
+                            <ChevronRight className={clsx(
+                                "h-3.5 w-3.5 transition-transform",
+                                selectedGroupName === group.name ? "rotate-90 text-primary-500" : "text-gray-300 opacity-0 group-hover:opacity-100"
+                            )} />
+                        </div>
                     </button>
                 ))}
             </nav>
 
-            {(!groups || groups.length === 0) && !isLoading && (
+            {groups.length === 0 && (
                 <div className="px-3 py-4 text-center">
                     <Folder className="h-8 w-8 text-gray-300 mx-auto mb-2 opacity-50" />
                     <p className="text-[10px] text-gray-400 italic">No custom groups defined.</p>
