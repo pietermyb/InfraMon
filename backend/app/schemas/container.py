@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class ContainerBase(BaseModel):
     """Base container model."""
-    
+
     name: str
     image: str
     status: str = "unknown"
@@ -16,33 +16,33 @@ class ContainerBase(BaseModel):
 
 class ContainerCreate(ContainerBase):
     """Container creation model (for tracking existing containers)."""
-    
+
     container_id: str = Field(..., description="Docker container ID")
 
 
 class ContainerUpdate(BaseModel):
     """Container update model."""
-    
+
     group_id: Optional[int] = None
     name: Optional[str] = None
 
 
 class ContainerUpdateRequest(BaseModel):
     """Container resource update request model."""
-    
+
     memory_limit: Optional[int] = Field(None, ge=0, description="Memory limit in bytes")
     cpu_shares: Optional[int] = Field(None, ge=0, le=1024, description="CPU shares")
 
 
 class ContainerRenameRequest(BaseModel):
     """Container rename request model."""
-    
+
     new_name: str = Field(..., min_length=1, max_length=128, pattern="^[a-zA-Z0-9][a-zA-Z0-9_.-]*$")
 
 
 class ContainerExecRequest(BaseModel):
     """Container exec request model."""
-    
+
     cmd: List[str] = Field(..., min_length=1, description="Command to execute")
     working_dir: Optional[str] = None
     user: Optional[str] = None
@@ -51,7 +51,7 @@ class ContainerExecRequest(BaseModel):
 
 class ContainerExecResponse(BaseModel):
     """Container exec response model."""
-    
+
     success: bool
     output: Optional[str] = None
     error: Optional[str] = None
@@ -59,7 +59,7 @@ class ContainerExecResponse(BaseModel):
 
 class ContainerShellInitResponse(BaseModel):
     """Container shell initialization response model."""
-    
+
     success: bool
     exec_id: Optional[str] = None
     error: Optional[str] = None
@@ -67,14 +67,14 @@ class ContainerShellInitResponse(BaseModel):
 
 class ContainerResizeRequest(BaseModel):
     """Container terminal resize request model."""
-    
+
     height: int = Field(24, ge=1, le=200)
     width: int = Field(80, ge=1, le=500)
 
 
 class ContainerDiffItem(BaseModel):
     """Container diff item model."""
-    
+
     path: str
     kind: str
     change: Optional[str] = None
@@ -82,14 +82,14 @@ class ContainerDiffItem(BaseModel):
 
 class ContainerDiffResponse(BaseModel):
     """Container diff response model."""
-    
+
     container_id: str
     changes: List[ContainerDiffItem]
 
 
 class ContainerPruneResponse(BaseModel):
     """Container prune response model."""
-    
+
     success: bool
     deleted_containers: List[str]
     space_reclaimed: int
@@ -97,7 +97,7 @@ class ContainerPruneResponse(BaseModel):
 
 class ContainerLogsStreamResponse(BaseModel):
     """Container logs streaming response model."""
-    
+
     container_id: str
     log_line: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -105,7 +105,7 @@ class ContainerLogsStreamResponse(BaseModel):
 
 class ContainerStatsStreamResponse(BaseModel):
     """Container stats streaming response model."""
-    
+
     container_id: str
     cpu_usage: float
     memory_usage: float
@@ -118,7 +118,7 @@ class ContainerStatsStreamResponse(BaseModel):
 
 class ContainerResponse(BaseModel):
     """Container response model."""
-    
+
     id: int
     container_id: str
     name: str
@@ -128,14 +128,14 @@ class ContainerResponse(BaseModel):
     docker_compose_path: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
 
 class ContainerDetailResponse(ContainerResponse):
     """Detailed container response model."""
-    
+
     ports: Optional[Dict[str, Any]] = None
     volumes: Optional[List[Dict[str, Any]]] = None
     environment: Optional[List[Dict[str, str]]] = None
@@ -168,7 +168,7 @@ class ContainerDetailResponse(ContainerResponse):
 
 class ContainerStatsResponse(BaseModel):
     """Container stats response model."""
-    
+
     id: int
     container_id: int
     cpu_usage: float
@@ -180,14 +180,14 @@ class ContainerStatsResponse(BaseModel):
     block_write: float
     pids: int
     timestamp: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class ContainerLogsResponse(BaseModel):
     """Container logs response model."""
-    
+
     container_id: str
     logs: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -195,7 +195,7 @@ class ContainerLogsResponse(BaseModel):
 
 class ContainerActionRequest(BaseModel):
     """Container action request model."""
-    
+
     timeout: int = Field(10, ge=1, le=300, description="Timeout in seconds")
     force: bool = False
     no_cache: bool = False
@@ -204,7 +204,7 @@ class ContainerActionRequest(BaseModel):
 
 class ContainerActionResponse(BaseModel):
     """Container action response model."""
-    
+
     success: bool
     message: str
     container_id: str
@@ -213,7 +213,7 @@ class ContainerActionResponse(BaseModel):
 
 class ContainerListResponse(BaseModel):
     """Container list response with pagination."""
-    
+
     containers: List[ContainerResponse]
     total: int
     running: int
@@ -222,7 +222,7 @@ class ContainerListResponse(BaseModel):
 
 class ContainerGroupBase(BaseModel):
     """Base container group model."""
-    
+
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     color: str = "#3B82F6"
@@ -230,12 +230,13 @@ class ContainerGroupBase(BaseModel):
 
 class ContainerGroupCreate(ContainerGroupBase):
     """Container group creation model."""
+
     pass
 
 
 class ContainerGroupUpdate(BaseModel):
     """Container group update model."""
-    
+
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
     color: Optional[str] = None
@@ -243,31 +244,31 @@ class ContainerGroupUpdate(BaseModel):
 
 class ContainerGroupResponse(ContainerGroupBase):
     """Container group response model."""
-    
+
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class ContainerGroupDetailResponse(ContainerGroupResponse):
     """Container group with containers response model."""
-    
+
     containers: List[ContainerResponse] = []
 
 
 class ContainerGroupListResponse(BaseModel):
     """Container group list response."""
-    
+
     groups: List[ContainerGroupResponse]
     total: int
 
 
 class ContainerBulkActionRequest(BaseModel):
     """Bulk container action request model."""
-    
+
     container_ids: List[str]
     action: str = Field(..., pattern="^(start|stop|restart|pause|unpause|remove)$")
     timeout: int = Field(10, ge=1, le=300)
@@ -277,7 +278,7 @@ class ContainerBulkActionRequest(BaseModel):
 
 class ContainerBulkActionResponse(BaseModel):
     """Bulk container action response model."""
-    
+
     success: bool
     message: str
     total: int

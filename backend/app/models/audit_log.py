@@ -6,7 +6,7 @@ from datetime import datetime
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     container_id = Column(Integer, ForeignKey("containers.id"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -16,6 +16,6 @@ class AuditLog(Base):
     success = Column(Integer, default=1)
     error_message = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    
+
     container = relationship("Container", back_populates="audit_logs")
     user = relationship("User", back_populates="audit_logs")

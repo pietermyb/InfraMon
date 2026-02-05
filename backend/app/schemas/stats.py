@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class SystemStatsResponse(BaseModel):
     """System statistics response model."""
-    
+
     id: int
     cpu_usage: float = Field(0.0, ge=0, le=100, description="CPU usage percentage")
     cpu_cores: int = 0
@@ -35,14 +35,14 @@ class SystemStatsResponse(BaseModel):
     boot_time: Optional[str] = None
     temperatures: Dict[str, float] = Field(default_factory=dict)
     timestamp: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class SystemInfoResponse(BaseModel):
     """System information response model."""
-    
+
     hostname: str
     system: str
     release: str
@@ -58,7 +58,7 @@ class SystemInfoResponse(BaseModel):
 
 class DiskPartitionResponse(BaseModel):
     """Disk partition response model."""
-    
+
     device: str
     mountpoint: str
     fstype: str
@@ -71,7 +71,7 @@ class DiskPartitionResponse(BaseModel):
 
 class NetworkInterfaceResponse(BaseModel):
     """Network interface response model."""
-    
+
     interface: str
     bytes_sent: float
     bytes_recv: float
@@ -85,7 +85,7 @@ class NetworkInterfaceResponse(BaseModel):
 
 class NetworkConnectionResponse(BaseModel):
     """Network connection response model."""
-    
+
     fd: int
     family: str
     type: str
@@ -97,7 +97,7 @@ class NetworkConnectionResponse(BaseModel):
 
 class ProcessResponse(BaseModel):
     """Process response model."""
-    
+
     pid: int
     name: str
     username: Optional[str] = None
@@ -108,14 +108,14 @@ class ProcessResponse(BaseModel):
 
 class ContainerProcessResponse(BaseModel):
     """Container process response model."""
-    
+
     processes: List[Dict[str, Any]] = Field(default_factory=list)
     container_id: str
 
 
 class ContainerFilesystemResponse(BaseModel):
     """Container filesystem usage response model."""
-    
+
     mount_point: str
     source: Optional[str] = None
     type: Optional[str] = None
@@ -127,7 +127,7 @@ class ContainerFilesystemResponse(BaseModel):
 
 class SystemStatsHistoryResponse(BaseModel):
     """System stats history response model."""
-    
+
     stats: List[Dict[str, Any]]
     period: str
     start_time: datetime
@@ -137,7 +137,7 @@ class SystemStatsHistoryResponse(BaseModel):
 
 class ContainerStatsHistoryResponse(BaseModel):
     """Container stats history response model."""
-    
+
     container_id: str
     container_name: Optional[str] = None
     stats: List[Dict[str, Any]]
@@ -149,7 +149,7 @@ class ContainerStatsHistoryResponse(BaseModel):
 
 class AggregatedStatsResponse(BaseModel):
     """Aggregated stats response model."""
-    
+
     timestamp: datetime
     cpu_usage_avg: float
     cpu_usage_max: float
@@ -165,7 +165,7 @@ class AggregatedStatsResponse(BaseModel):
 
 class ResourceUsageResponse(BaseModel):
     """Resource usage summary."""
-    
+
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     disk_usage: float = 0.0
@@ -178,7 +178,7 @@ class ResourceUsageResponse(BaseModel):
 
 class TopConsumersResponse(BaseModel):
     """Top resource consumers response model."""
-    
+
     consumers: List[Dict[str, Any]] = Field(default_factory=list)
     metric: str
     limit: int
@@ -186,7 +186,7 @@ class TopConsumersResponse(BaseModel):
 
 class ContainerComparisonResponse(BaseModel):
     """Container comparison response model."""
-    
+
     container_ids: List[str]
     period: str
     metric: str
@@ -196,7 +196,7 @@ class ContainerComparisonResponse(BaseModel):
 
 class ResourceTrendsResponse(BaseModel):
     """Resource trends response model."""
-    
+
     metric: str
     period: str
     trend: str
@@ -208,7 +208,7 @@ class ResourceTrendsResponse(BaseModel):
 
 class PruneStatsResponse(BaseModel):
     """Prune stats response model."""
-    
+
     system_stats_deleted: int
     container_stats_deleted: int
     retention_days: int
@@ -216,7 +216,7 @@ class PruneStatsResponse(BaseModel):
 
 class ExportStatsResponse(BaseModel):
     """Export stats response model."""
-    
+
     format: str
     stats_type: str
     period: str
@@ -227,7 +227,7 @@ class ExportStatsResponse(BaseModel):
 
 class ContainerGroupStatsResponse(BaseModel):
     """Container group stats response model."""
-    
+
     group_id: int
     group_name: str
     total_containers: int
@@ -240,7 +240,7 @@ class ContainerGroupStatsResponse(BaseModel):
 
 class StatsQueryParams(BaseModel):
     """Stats query parameters."""
-    
+
     period: str = Field("1h", pattern="^(1h|6h|24h|7d|30d)$")
     interval: str = Field("1m", pattern="^(1m|5m|15m|30m|1h)$")
     aggregate: bool = False
@@ -249,7 +249,7 @@ class StatsQueryParams(BaseModel):
 
 class ResourceComparisonResponse(BaseModel):
     """Resource comparison between containers."""
-    
+
     containers: List[Dict[str, Any]]
     metrics: List[str]
     timestamp: datetime
@@ -257,12 +257,17 @@ class ResourceComparisonResponse(BaseModel):
 
 class DashboardStatsResponse(BaseModel):
     """Dashboard statistics summary."""
-    
+
     system: SystemStatsResponse
     containers: Dict[str, Any] = Field(
         default_factory=lambda: {
-            "total_containers": 0, "running": 0, "stopped": 0, "paused": 0,
-            "total_cpu_cores": 0, "total_memory_bytes": 0, "total_disk_bytes": 0
+            "total_containers": 0,
+            "running": 0,
+            "stopped": 0,
+            "paused": 0,
+            "total_cpu_cores": 0,
+            "total_memory_bytes": 0,
+            "total_disk_bytes": 0,
         }
     )
     resources: Dict[str, float] = Field(

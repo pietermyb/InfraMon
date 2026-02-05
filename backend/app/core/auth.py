@@ -5,7 +5,11 @@ from typing import Optional
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPAuthorizationCredentials
+from fastapi.security import (
+    OAuth2PasswordBearer,
+    OAuth2PasswordRequestForm,
+    HTTPAuthorizationCredentials,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 import secrets
@@ -35,8 +39,7 @@ class TokenBlacklist:
         """Remove tokens that have expired past the threshold."""
         current_time = datetime.utcnow().timestamp()
         expired = [
-            t for t in TOKEN_BLACKLIST
-            if self._get_expiry(t) < current_time - expiry_threshold
+            t for t in TOKEN_BLACKLIST if self._get_expiry(t) < current_time - expiry_threshold
         ]
         TOKEN_BLACKLIST.difference_update(expired)
 
@@ -45,7 +48,7 @@ class TokenBlacklist:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
             return payload.get("exp", 0)
         except JWTError:
-            return float('inf')
+            return float("inf")
 
 
 token_blacklist = TokenBlacklist()
@@ -64,7 +67,9 @@ def get_password_hash(password: str) -> str:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire, "type": "access", "iat": datetime.utcnow()})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
 
@@ -104,8 +109,7 @@ def blacklist_token(token: str) -> None:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ) -> User:
     """Get the current authenticated user from JWT token."""
     if token_blacklist.is_blacklisted(token):
@@ -114,49 +118,44 @@ async def get_current_user(
             detail="Token has been revoked",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     payload = decode_token(token)
     if payload is None:
         raise credentials_exception
-    
+
     if payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     username: str = payload.get("sub")
     if username is None:
         raise credentials_exception
-    
-    result = await db.execute(
-        select(User).where(User.username == username)
-    )
+
+    result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
-    
+
     if user is None:
         raise credentials_exception
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    
+
     return user
 
 
-async def get_current_active_superuser(
-    current_user: User = Depends(get_current_user)
-) -> User:
+async def get_current_active_superuser(current_user: User = Depends(get_current_user)) -> User:
     """Get current user and verify superuser status."""
-    if not getattr(current_user, 'is_superuser', False):
+    if not getattr(current_user, "is_superuser", False):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges"
+            status_code=status.HTTP_403_FORBIDDEN, detail="The user doesn't have enough privileges"
         )
     return current_user
 
@@ -168,31 +167,29 @@ async def get_token_from_refresh(refresh_token: str, db: AsyncSession) -> Option
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has been revoked",
         )
-    
+
     payload = decode_token(refresh_token)
     if payload is None or payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
-    
+
     username: str = payload.get("sub")
     if username is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
-    
-    result = await db.execute(
-        select(User).where(User.username == username)
-    )
+
+    result = await db.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
-    
+
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive",
         )
-    
+
     blacklist_token(refresh_token)
     return create_tokens_for_user(user)

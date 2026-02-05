@@ -14,7 +14,7 @@ class HealthStatus(str, Enum):
 
 class BaseResponse(BaseModel):
     """Base API response model."""
-    
+
     success: bool = True
     message: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -22,23 +22,23 @@ class BaseResponse(BaseModel):
 
 class DataResponse(BaseResponse):
     """Response with data payload."""
-    
+
     data: Any = None
 
 
 class PaginatedResponse(BaseResponse):
     """Paginated response model."""
-    
+
     data: List[Any] = []
     total: int = 0
     page: int = 1
     page_size: int = 20
     total_pages: int = 0
-    
+
     @property
     def has_next(self) -> bool:
         return self.page < self.total_pages
-    
+
     @property
     def has_previous(self) -> bool:
         return self.page > 1
@@ -49,7 +49,7 @@ T = TypeVar("T")
 
 class ResponseModel(BaseModel, Generic[T]):
     """Generic response model."""
-    
+
     success: bool = True
     data: Optional[T] = None
     message: Optional[str] = None
@@ -59,7 +59,7 @@ class ResponseModel(BaseModel, Generic[T]):
 
 class TokenResponse(BaseModel):
     """Token response model."""
-    
+
     access_token: str
     refresh_token: Optional[str] = None
     token_type: str = "bearer"
@@ -69,7 +69,7 @@ class TokenResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error response model."""
-    
+
     success: bool = False
     error: str
     detail: Optional[str] = None
@@ -78,7 +78,7 @@ class ErrorResponse(BaseModel):
 
 class PaginationParams:
     """Pagination parameters."""
-    
+
     def __init__(
         self,
         page: int = Field(1, ge=1),
@@ -90,11 +90,11 @@ class PaginationParams:
         self.page_size = page_size
         self.order_by = order_by
         self.order = order
-    
+
     @property
     def skip(self) -> int:
         return (self.page - 1) * self.page_size
-    
+
     @property
     def limit(self) -> int:
         return self.page_size
@@ -109,7 +109,7 @@ def create_paginated_response(
 ) -> PaginatedResponse:
     """Create a paginated response."""
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
-    
+
     return PaginatedResponse(
         data=data,
         total=total,

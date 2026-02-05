@@ -17,30 +17,22 @@ class Repository(Generic[ModelType]):
 
     async def get(self, id: Any) -> Optional[ModelType]:
         """Get a single record by ID."""
-        result = await self.session.execute(
-            select(self.model).where(self.model.id == id)
-        )
+        result = await self.session.execute(select(self.model).where(self.model.id == id))
         return result.scalar_one_or_none()
 
     async def get_by(self, **kwargs) -> Optional[ModelType]:
         """Get a single record by keyword arguments."""
-        result = await self.session.execute(
-            select(self.model).filter_by(**kwargs)
-        )
+        result = await self.session.execute(select(self.model).filter_by(**kwargs))
         return result.scalar_one_or_none()
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelType]:
         """Get all records with pagination."""
-        result = await self.session.execute(
-            select(self.model).offset(skip).limit(limit)
-        )
+        result = await self.session.execute(select(self.model).offset(skip).limit(limit))
         return list(result.scalars().all())
 
     async def count(self) -> int:
         """Count all records."""
-        result = await self.session.execute(
-            select(func.count()).select_from(self.model)
-        )
+        result = await self.session.execute(select(func.count()).select_from(self.model))
         return result.scalar()
 
     async def create(self, **kwargs) -> ModelType:
@@ -53,25 +45,19 @@ class Repository(Generic[ModelType]):
 
     async def update(self, id: Any, **kwargs) -> Optional[ModelType]:
         """Update a record by ID."""
-        await self.session.execute(
-            update(self.model).where(self.model.id == id).values(**kwargs)
-        )
+        await self.session.execute(update(self.model).where(self.model.id == id).values(**kwargs))
         await self.session.commit()
         return await self.get(id)
 
     async def delete(self, id: Any) -> bool:
         """Delete a record by ID."""
-        result = await self.session.execute(
-            delete(self.model).where(self.model.id == id)
-        )
+        result = await self.session.execute(delete(self.model).where(self.model.id == id))
         await self.session.commit()
         return result.rowcount > 0
 
     async def exists(self, **kwargs) -> bool:
         """Check if a record exists."""
-        result = await self.session.execute(
-            select(self.model).filter_by(**kwargs).exists()
-        )
+        result = await self.session.execute(select(self.model).filter_by(**kwargs).exists())
         return await self.session.scalar(result)
 
     async def filter(
@@ -80,7 +66,7 @@ class Repository(Generic[ModelType]):
         limit: int = 100,
         order_by: Optional[str] = None,
         descending: bool = False,
-        **kwargs
+        **kwargs,
     ) -> List[ModelType]:
         """Filter records with various options."""
         query = select(self.model)

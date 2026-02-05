@@ -46,27 +46,25 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ):
     """Login endpoint with OAuth2 password flow."""
-    result = await db.execute(
-        select(User).where(User.username == form_data.username)
-    )
+    result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalar_one_or_none()
-    
+
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User account is inactive",
         )
-    
+
     access_token = create_access_token(data={"sub": user.username, "user_id": user.id})
     refresh_token = create_refresh_token(data={"sub": user.username, "user_id": user.id})
-    
+
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -91,7 +89,7 @@ async def logout(
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header[7:]
         blacklist_token(token)
-    
+
     return LogoutResponse(message="Successfully logged out")
 
 
@@ -110,7 +108,7 @@ async def refresh_token(
 ):
     """Refresh access token using refresh token."""
     tokens = await get_token_from_refresh(request.refresh_token, db)
-    
+
     return TokenRefreshResponse(
         access_token=tokens["access_token"],
         refresh_token=tokens.get("refresh_token"),
@@ -153,14 +151,14 @@ async def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="New passwords do not match",
         )
-    
+
     if not verify_password(current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
-    
+
     current_user.hashed_password = get_password_hash(new_password)
     await db.commit()
-    
+
     return {"message": "Password changed successfully"}

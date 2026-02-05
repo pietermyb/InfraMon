@@ -76,7 +76,6 @@ __all__ = [
     "LogoutResponse",
     "TokenRefreshResponse",
     "CurrentUserResponse",
-    
     # Response schemas
     "BaseResponse",
     "DataResponse",
@@ -88,7 +87,6 @@ __all__ = [
     "ContainerStatus",
     "OperationStatus",
     "create_paginated_response",
-    
     # Container schemas
     "ContainerBase",
     "ContainerCreate",
@@ -105,14 +103,12 @@ __all__ = [
     "ContainerGroupUpdate",
     "ContainerGroupResponse",
     "ContainerGroupListResponse",
-    
     # Stats schemas
     "SystemStatsResponse",
     "SystemStatsHistoryResponse",
     "DashboardStatsResponse",
     "ContainerStatsHistoryResponse",
     "ResourceUsageResponse",
-    
     # Docker Compose schemas
     "DockerComposeProjectResponse",
     "DockerComposePullResponse",

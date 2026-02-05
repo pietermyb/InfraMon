@@ -14,24 +14,49 @@ from app.models.user import User
 from app.schemas.user import UserResponse, UserLogin, UserPasswordUpdate
 from app.schemas.response import DataResponse
 from app.schemas.container import (
-    ContainerResponse, ContainerDetailResponse, ContainerLogsResponse,
-    ContainerActionRequest, ContainerActionResponse, ContainerListResponse,
-    ContainerGroupResponse, ContainerGroupCreate, ContainerGroupUpdate,
-    ContainerBulkActionRequest, ContainerBulkActionResponse,
-    ContainerUpdateRequest, ContainerRenameRequest, ContainerExecRequest,
-    ContainerExecResponse, ContainerShellInitResponse, ContainerResizeRequest,
-    ContainerDiffResponse, ContainerPruneResponse,
+    ContainerResponse,
+    ContainerDetailResponse,
+    ContainerLogsResponse,
+    ContainerActionRequest,
+    ContainerActionResponse,
+    ContainerListResponse,
+    ContainerGroupResponse,
+    ContainerGroupCreate,
+    ContainerGroupUpdate,
+    ContainerBulkActionRequest,
+    ContainerBulkActionResponse,
+    ContainerUpdateRequest,
+    ContainerRenameRequest,
+    ContainerExecRequest,
+    ContainerExecResponse,
+    ContainerShellInitResponse,
+    ContainerResizeRequest,
+    ContainerDiffResponse,
+    ContainerPruneResponse,
 )
 from app.schemas.stats import (
-    SystemStatsResponse, DashboardStatsResponse, SystemInfoResponse,
-    DiskPartitionResponse, NetworkInterfaceResponse, NetworkConnectionResponse,
-    ProcessResponse, ContainerFilesystemResponse, SystemStatsHistoryResponse,
-    ContainerStatsHistoryResponse, AggregatedStatsResponse, ResourceUsageResponse,
-    TopConsumersResponse, ContainerComparisonResponse, ResourceTrendsResponse,
-    PruneStatsResponse, ExportStatsResponse, ContainerGroupStatsResponse,
+    SystemStatsResponse,
+    DashboardStatsResponse,
+    SystemInfoResponse,
+    DiskPartitionResponse,
+    NetworkInterfaceResponse,
+    NetworkConnectionResponse,
+    ProcessResponse,
+    ContainerFilesystemResponse,
+    SystemStatsHistoryResponse,
+    ContainerStatsHistoryResponse,
+    AggregatedStatsResponse,
+    ResourceUsageResponse,
+    TopConsumersResponse,
+    ContainerComparisonResponse,
+    ResourceTrendsResponse,
+    PruneStatsResponse,
+    ExportStatsResponse,
+    ContainerGroupStatsResponse,
 )
 from app.schemas.docker_compose import (
-    DockerComposeFileContent, DockerComposeValidationResponse,
+    DockerComposeFileContent,
+    DockerComposeValidationResponse,
 )
 from app.services.docker_service import DockerService
 from app.services.container_service import ContainerService
@@ -43,28 +68,29 @@ api_router = APIRouter()
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict = {}
-    
+
     async def connect(self, websocket: WebSocket, key: str):
         await websocket.accept()
         self.active_connections[key] = websocket
-    
+
     def disconnect(self, key: str):
         if key in self.active_connections:
             del self.active_connections[key]
-    
+
     async def send_message(self, key: str, message: str):
         if key in self.active_connections:
             try:
                 await self.active_connections[key].send_text(message)
             except Exception:
                 self.disconnect(key)
-    
+
     async def send_bytes(self, key: str, data: bytes):
         if key in self.active_connections:
             try:
                 await self.active_connections[key].send_bytes(data)
             except Exception:
                 self.disconnect(key)
+
 
 manager = ConnectionManager()
 
@@ -80,27 +106,25 @@ async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
     """User login endpoint."""
     from app.core.auth import verify_password, create_access_token, create_refresh_token
     from sqlalchemy import select
-    
-    result = await db.execute(
-        select(User).where(User.username == request.username)
-    )
+
+    result = await db.execute(select(User).where(User.username == request.username))
     user = result.scalar_one_or_none()
-    
+
     if not user or not verify_password(request.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User account is inactive",
         )
-    
+
     access_token = create_access_token(data={"sub": user.username, "user_id": user.id})
     refresh_token = create_refresh_token(data={"sub": user.username, "user_id": user.id})
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -123,19 +147,19 @@ async def change_password(
 ):
     """Change current user password."""
     from app.core.auth import verify_password, get_password_hash
-    
+
     if not verify_password(password_data.current_password, current_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect current password",
         )
-    
+
     current_user.hashed_password = get_password_hash(password_data.new_password)
     current_user.updated_at = datetime.utcnow()
-    
+
     db.add(current_user)
     await db.commit()
-    
+
     return {"message": "Password updated successfully"}
 
 
@@ -149,9 +173,9 @@ async def list_containers(
     """List all containers."""
     docker_service = DockerService(db)
     containers = await docker_service.list_all_containers(all_containers)
-    
+
     running = sum(1 for c in containers if c.get("status") == "running")
-    
+
     return DataResponse(
         success=True,
         data={
@@ -159,11 +183,13 @@ async def list_containers(
             "total": len(containers),
             "running": running,
             "stopped": len(containers) - running,
-        }
+        },
     )
 
 
-@api_router.get("/containers/{container_id}", response_model=ContainerDetailResponse, tags=["Containers"])
+@api_router.get(
+    "/containers/{container_id}", response_model=ContainerDetailResponse, tags=["Containers"]
+)
 async def get_container(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -172,17 +198,19 @@ async def get_container(
     """Get container details."""
     docker_service = DockerService(db)
     container = await docker_service.inspect_container(container_id)
-    
+
     if not container:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Container '{container_id}' not found",
         )
-    
+
     return container
 
 
-@api_router.post("/containers/{container_id}/start", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/start", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def start_container(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -191,7 +219,7 @@ async def start_container(
     """Start a container."""
     docker_service = DockerService(db)
     success, message = await docker_service.start_container(container_id)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -199,7 +227,9 @@ async def start_container(
     )
 
 
-@api_router.post("/containers/{container_id}/stop", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/stop", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def stop_container(
     container_id: str,
     timeout: int = Query(10, ge=1, le=300),
@@ -209,7 +239,7 @@ async def stop_container(
     """Stop a container."""
     docker_service = DockerService(db)
     success, message = await docker_service.stop_container(container_id, timeout)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -217,7 +247,11 @@ async def stop_container(
     )
 
 
-@api_router.post("/containers/{container_id}/restart", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/restart",
+    response_model=ContainerActionResponse,
+    tags=["Containers"],
+)
 async def restart_container(
     container_id: str,
     timeout: int = Query(10, ge=1, le=300),
@@ -228,7 +262,7 @@ async def restart_container(
     """Restart a container."""
     docker_service = DockerService(db)
     success, message = await docker_service.restart_container(container_id, timeout, force)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -236,7 +270,9 @@ async def restart_container(
     )
 
 
-@api_router.delete("/containers/{container_id}", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.delete(
+    "/containers/{container_id}", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def remove_container(
     container_id: str,
     force: bool = Query(False),
@@ -247,7 +283,7 @@ async def remove_container(
     """Remove a container."""
     docker_service = DockerService(db)
     success, message = await docker_service.remove_container(container_id, force, volumes)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -276,7 +312,7 @@ async def get_container_logs(
         tail=tail,
         since=since,
     )
-    
+
     return logs_data
 
 
@@ -314,7 +350,11 @@ async def get_container_compose_info(
     return await docker_service.get_compose_info(container_id)
 
 
-@api_router.get("/containers/{container_id}/compose/file", response_model=DockerComposeFileContent, tags=["Containers", "Docker Compose"])
+@api_router.get(
+    "/containers/{container_id}/compose/file",
+    response_model=DockerComposeFileContent,
+    tags=["Containers", "Docker Compose"],
+)
 async def get_container_compose_file(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -329,20 +369,24 @@ async def get_container_compose_file(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No compose file found for this container",
         )
-    
+
     # Then get the content
     success, result = await docker_service.get_compose_file_content(info["compose_file_path"])
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=result,
         )
-    
+
     return result
 
 
-@api_router.post("/containers/{container_id}/compose/pull", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/compose/pull",
+    response_model=ContainerActionResponse,
+    tags=["Containers"],
+)
 async def pull_container_image(
     container_id: str,
     no_cache: bool = Query(False),
@@ -352,7 +396,7 @@ async def pull_container_image(
     """Pull latest image for container."""
     docker_service = DockerService(db)
     success = await docker_service.pull_image(container_id, no_cache)
-    
+
     return ContainerActionResponse(
         success=success,
         message="Image pulled successfully" if success else "Failed to pull image",
@@ -381,7 +425,9 @@ async def create_group(
     return await container_service.create_group(group)
 
 
-@api_router.put("/groups/{group_id}", response_model=ContainerGroupResponse, tags=["Container Groups"])
+@api_router.put(
+    "/groups/{group_id}", response_model=ContainerGroupResponse, tags=["Container Groups"]
+)
 async def update_group(
     group_id: int,
     group: ContainerGroupUpdate,
@@ -391,17 +437,19 @@ async def update_group(
     """Update container group."""
     container_service = ContainerService(db)
     result = await container_service.update_group(group_id, group)
-    
+
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Group not found",
         )
-    
+
     return result
 
 
-@api_router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Container Groups"])
+@api_router.delete(
+    "/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Container Groups"]
+)
 async def delete_group(
     group_id: int,
     current_user: User = Depends(get_current_user),
@@ -410,7 +458,7 @@ async def delete_group(
     """Delete container group."""
     container_service = ContainerService(db)
     success = await container_service.delete_group(group_id)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -438,7 +486,9 @@ async def get_system_info(
     return await stats_service.get_system_info()
 
 
-@api_router.get("/stats/system/disk", response_model=list[DiskPartitionResponse], tags=["Statistics"])
+@api_router.get(
+    "/stats/system/disk", response_model=list[DiskPartitionResponse], tags=["Statistics"]
+)
 async def get_disk_partitions(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -448,7 +498,9 @@ async def get_disk_partitions(
     return await stats_service.get_disk_partitions()
 
 
-@api_router.get("/stats/system/network", response_model=list[NetworkInterfaceResponse], tags=["Statistics"])
+@api_router.get(
+    "/stats/system/network", response_model=list[NetworkInterfaceResponse], tags=["Statistics"]
+)
 async def get_network_interfaces(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -459,9 +511,13 @@ async def get_network_interfaces(
     return stats.get("network_interfaces", [])
 
 
-@api_router.get("/stats/system/connections", response_model=list[NetworkConnectionResponse], tags=["Statistics"])
+@api_router.get(
+    "/stats/system/connections", response_model=list[NetworkConnectionResponse], tags=["Statistics"]
+)
 async def get_network_connections(
-    kind: str = Query("inet", description="Connection type: inet, inet6, tcp, tcp4, udp, udp4, etc."),
+    kind: str = Query(
+        "inet", description="Connection type: inet, inet6, tcp, tcp4, udp, udp4, etc."
+    ),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -470,7 +526,9 @@ async def get_network_connections(
     return await stats_service.get_network_connections(kind)
 
 
-@api_router.get("/stats/system/processes", response_model=list[ProcessResponse], tags=["Statistics"])
+@api_router.get(
+    "/stats/system/processes", response_model=list[ProcessResponse], tags=["Statistics"]
+)
 async def get_process_list(
     limit: int = Query(20, ge=1, le=100),
     order_by: str = Query("cpu", pattern="^(cpu|memory|pid)$"),
@@ -482,7 +540,9 @@ async def get_process_list(
     return await stats_service.get_process_list(limit=limit, order_by=order_by)
 
 
-@api_router.get("/stats/system/history", response_model=SystemStatsHistoryResponse, tags=["Statistics"])
+@api_router.get(
+    "/stats/system/history", response_model=SystemStatsHistoryResponse, tags=["Statistics"]
+)
 async def get_system_stats_history(
     period: str = Query("1h", pattern="^(1h|6h|24h|7d|30d)$"),
     aggregate: bool = Query(False),
@@ -492,13 +552,19 @@ async def get_system_stats_history(
     """Get historical system stats."""
     stats_service = StatsService(db)
     now = datetime.utcnow()
-    
-    periods = {"1h": timedelta(hours=1), "6h": timedelta(hours=6), "24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
+
+    periods = {
+        "1h": timedelta(hours=1),
+        "6h": timedelta(hours=6),
+        "24h": timedelta(hours=24),
+        "7d": timedelta(days=7),
+        "30d": timedelta(days=30),
+    }
     delta = periods.get(period, timedelta(hours=1))
     start_time = now - delta
-    
+
     stats = await stats_service.get_system_stats_history(period=period, aggregate=aggregate)
-    
+
     return {
         "stats": stats,
         "period": period,
@@ -508,7 +574,11 @@ async def get_system_stats_history(
     }
 
 
-@api_router.get("/stats/containers/{container_id}/processes", response_model=list[Dict[str, Any]], tags=["Statistics"])
+@api_router.get(
+    "/stats/containers/{container_id}/processes",
+    response_model=list[Dict[str, Any]],
+    tags=["Statistics"],
+)
 async def get_container_processes(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -519,7 +589,11 @@ async def get_container_processes(
     return await stats_service.get_container_processes(container_id)
 
 
-@api_router.get("/stats/containers/{container_id}/filesystem", response_model=list[ContainerFilesystemResponse], tags=["Statistics"])
+@api_router.get(
+    "/stats/containers/{container_id}/filesystem",
+    response_model=list[ContainerFilesystemResponse],
+    tags=["Statistics"],
+)
 async def get_container_filesystem_usage(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -530,7 +604,11 @@ async def get_container_filesystem_usage(
     return await stats_service.get_container_filesystem_usage(container_id)
 
 
-@api_router.get("/containers/{container_id}/stats/history", response_model=ContainerStatsHistoryResponse, tags=["Statistics"])
+@api_router.get(
+    "/containers/{container_id}/stats/history",
+    response_model=ContainerStatsHistoryResponse,
+    tags=["Statistics"],
+)
 async def get_container_stats_history(
     container_id: str,
     period: str = Query("1h", pattern="^(1h|6h|24h|7d|30d)$"),
@@ -541,13 +619,21 @@ async def get_container_stats_history(
     """Get historical container stats."""
     stats_service = StatsService(db)
     now = datetime.utcnow()
-    
-    periods = {"1h": timedelta(hours=1), "6h": timedelta(hours=6), "24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
+
+    periods = {
+        "1h": timedelta(hours=1),
+        "6h": timedelta(hours=6),
+        "24h": timedelta(hours=24),
+        "7d": timedelta(days=7),
+        "30d": timedelta(days=30),
+    }
     delta = periods.get(period, timedelta(hours=1))
     start_time = now - delta
-    
-    stats = await stats_service.get_container_stats_history(container_id, period=period, aggregate=aggregate)
-    
+
+    stats = await stats_service.get_container_stats_history(
+        container_id, period=period, aggregate=aggregate
+    )
+
     return {
         "container_id": container_id,
         "container_name": None,
@@ -570,7 +656,7 @@ async def get_top_consumers(
     """Get top resource consuming containers."""
     stats_service = StatsService(db)
     consumers = await stats_service.get_top_consumers(metric=metric, limit=limit, period=period)
-    
+
     return {
         "consumers": consumers,
         "metric": metric,
@@ -627,7 +713,9 @@ async def export_stats(
     return await stats_service.export_stats(stats_type=stats_type, period=period, format=format)
 
 
-@api_router.get("/stats/groups/{group_id}", response_model=ContainerGroupStatsResponse, tags=["Statistics"])
+@api_router.get(
+    "/stats/groups/{group_id}", response_model=ContainerGroupStatsResponse, tags=["Statistics"]
+)
 async def get_group_stats(
     group_id: int,
     current_user: User = Depends(get_current_user),
@@ -658,7 +746,9 @@ async def list_compose_projects(
     return await docker_service.list_compose_projects()
 
 
-@api_router.post("/containers/bulk-action", response_model=ContainerBulkActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/bulk-action", response_model=ContainerBulkActionResponse, tags=["Containers"]
+)
 async def bulk_container_action(
     request: ContainerBulkActionRequest,
     current_user: User = Depends(get_current_user),
@@ -669,7 +759,7 @@ async def bulk_container_action(
     results = []
     succeeded = 0
     failed = 0
-    
+
     for container_id in request.container_ids:
         success = False
         message = ""
@@ -678,26 +768,34 @@ async def bulk_container_action(
         elif request.action == "stop":
             success, message = await docker_service.stop_container(container_id, request.timeout)
         elif request.action == "restart":
-            success, message = await docker_service.restart_container(container_id, request.timeout, request.force)
+            success, message = await docker_service.restart_container(
+                container_id, request.timeout, request.force
+            )
         elif request.action == "pause":
             success, message = await docker_service.pause_container(container_id)
         elif request.action == "unpause":
             success, message = await docker_service.unpause_container(container_id)
         elif request.action == "remove":
-            success, message = await docker_service.remove_container(container_id, request.force, request.volumes)
-        
+            success, message = await docker_service.remove_container(
+                container_id, request.force, request.volumes
+            )
+
         result = ContainerActionResponse(
             success=success,
-            message=message or f"Container {request.action} successful" if success else f"Container {request.action} failed",
+            message=(
+                message or f"Container {request.action} successful"
+                if success
+                else f"Container {request.action} failed"
+            ),
             container_id=container_id,
         )
         results.append(result)
-        
+
         if success:
             succeeded += 1
         else:
             failed += 1
-    
+
     return ContainerBulkActionResponse(
         success=failed == 0,
         message=f"Processed {len(request.container_ids)} containers",
@@ -708,7 +806,9 @@ async def bulk_container_action(
     )
 
 
-@api_router.post("/containers/{container_id}/pause", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/pause", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def pause_container(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -717,7 +817,7 @@ async def pause_container(
     """Pause a container."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, message = await docker_service.pause_container(container_id)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -725,7 +825,11 @@ async def pause_container(
     )
 
 
-@api_router.post("/containers/{container_id}/unpause", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/unpause",
+    response_model=ContainerActionResponse,
+    tags=["Containers"],
+)
 async def unpause_container(
     container_id: str,
     current_user: User = Depends(get_current_user),
@@ -734,7 +838,7 @@ async def unpause_container(
     """Unpause a container."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, message = await docker_service.unpause_container(container_id)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -742,7 +846,9 @@ async def unpause_container(
     )
 
 
-@api_router.post("/containers/{container_id}/kill", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/kill", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def kill_container(
     container_id: str,
     signal: str = Query("SIGKILL", description="Signal to send to container"),
@@ -752,7 +858,7 @@ async def kill_container(
     """Kill a container with a signal."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, message = await docker_service.kill_container(container_id, signal)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -760,7 +866,9 @@ async def kill_container(
     )
 
 
-@api_router.put("/containers/{container_id}/rename", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.put(
+    "/containers/{container_id}/rename", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def rename_container(
     container_id: str,
     request: ContainerRenameRequest,
@@ -770,7 +878,7 @@ async def rename_container(
     """Rename a container."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, message = await docker_service.rename_container(container_id, request.new_name)
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -778,7 +886,9 @@ async def rename_container(
     )
 
 
-@api_router.patch("/containers/{container_id}", response_model=ContainerActionResponse, tags=["Containers"])
+@api_router.patch(
+    "/containers/{container_id}", response_model=ContainerActionResponse, tags=["Containers"]
+)
 async def update_container(
     container_id: str,
     request: ContainerUpdateRequest,
@@ -792,7 +902,7 @@ async def update_container(
         memory_limit=request.memory_limit,
         cpu_shares=request.cpu_shares,
     )
-    
+
     return ContainerActionResponse(
         success=success,
         message=message,
@@ -809,22 +919,24 @@ async def get_container_diff(
     """Get container filesystem changes."""
     docker_service = DockerService(db)
     success, result = await docker_service.container_diff(container_id)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=result,
         )
-    
+
     changes = []
     for item in result:
         kind_map = {"A": "Added", "D": "Deleted", "C": "Changed"}
-        changes.append({
-            "path": item.get("Path", ""),
-            "kind": item.get("Kind", 0),
-            "change": kind_map.get(str(item.get("Kind", "")), "Unknown"),
-        })
-    
+        changes.append(
+            {
+                "path": item.get("Path", ""),
+                "kind": item.get("Kind", 0),
+                "change": kind_map.get(str(item.get("Kind", "")), "Unknown"),
+            }
+        )
+
     return {"container_id": container_id, "changes": changes}
 
 
@@ -838,7 +950,7 @@ async def prune_containers(
 ):
     """Remove stopped containers."""
     docker_service = DockerService(db, user_id=current_user.id)
-    
+
     filters = {}
     if filter_label:
         filters["label"] = filter_label
@@ -846,16 +958,16 @@ async def prune_containers(
         filters["until"] = filter_until
     if filter_name:
         filters["name"] = filter_name
-    
+
     success, result = await docker_service.prune_containers(filters=filters if filters else None)
-    
+
     if not success:
         return ContainerPruneResponse(
             success=False,
             deleted_containers=[],
             space_reclaimed=0,
         )
-    
+
     return ContainerPruneResponse(
         success=True,
         deleted_containers=result.get("ContainersDeleted", []),
@@ -875,7 +987,9 @@ async def get_container_stats_formatted(
     return stats
 
 
-@api_router.post("/containers/{container_id}/exec", response_model=ContainerExecResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/exec", response_model=ContainerExecResponse, tags=["Containers"]
+)
 async def exec_in_container(
     container_id: str,
     request: ContainerExecRequest,
@@ -891,7 +1005,7 @@ async def exec_in_container(
         user=request.user,
         environment=request.environment,
     )
-    
+
     return ContainerExecResponse(
         success=success,
         output=output,
@@ -899,7 +1013,11 @@ async def exec_in_container(
     )
 
 
-@api_router.post("/containers/{container_id}/shell", response_model=ContainerShellInitResponse, tags=["Containers"])
+@api_router.post(
+    "/containers/{container_id}/shell",
+    response_model=ContainerShellInitResponse,
+    tags=["Containers"],
+)
 async def init_shell(
     container_id: str,
     shell: str = Query("/bin/sh", description="Shell to use"),
@@ -914,10 +1032,10 @@ async def init_shell(
         interactive=True,
         tty=True,
     )
-    
+
     if "error" in result:
         return ContainerShellInitResponse(success=False, error=result["error"])
-    
+
     return ContainerShellInitResponse(success=True, exec_id=result["exec_id"])
 
 
@@ -928,12 +1046,12 @@ async def websocket_shell(
     exec_id: str,
 ):
     """WebSocket endpoint for interactive shell access."""
-    
+
     session_key = f"{container_id}:{exec_id}"
     await manager.connect(websocket, session_key)
-    
+
     docker_service = DockerService(None)
-    
+
     try:
         async for chunk in docker_service.start_exec(exec_id, stream=True, socket=True):
             if isinstance(chunk, bytes):
@@ -958,13 +1076,13 @@ async def resize_terminal(
     """Resize the terminal for a shell session."""
     docker_service = DockerService(None)
     success, error = await docker_service.resize_exec(exec_id, request.height, request.width)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=error,
         )
-    
+
     return {"success": True}
 
 
@@ -976,13 +1094,13 @@ async def get_docker_info(
     """Get Docker system information."""
     docker_service = DockerService(db)
     success, result = await docker_service.get_system_info()
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_BAD_REQUEST,
             detail=result.get("error", "Failed to get Docker info"),
         )
-    
+
     return result
 
 
@@ -994,13 +1112,13 @@ async def get_docker_version(
     """Get Docker version information."""
     docker_service = DockerService(db)
     success, result = await docker_service.get_docker_version()
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_BAD_REQUEST,
             detail=result.get("error", "Failed to get Docker version"),
         )
-    
+
     return result
 
 
@@ -1013,17 +1131,19 @@ async def get_compose_file(
     """Get docker-compose file content."""
     docker_service = DockerService(db)
     success, result = await docker_service.get_compose_file_content(path)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=result,
         )
-    
+
     return result
 
 
-@api_router.get("/compose/validate", response_model=DockerComposeValidationResponse, tags=["Docker Compose"])
+@api_router.get(
+    "/compose/validate", response_model=DockerComposeValidationResponse, tags=["Docker Compose"]
+)
 async def validate_compose_file(
     path: str = Query(..., description="Path to docker-compose.yaml file"),
     current_user: User = Depends(get_current_user),
@@ -1032,14 +1152,14 @@ async def validate_compose_file(
     """Validate a docker-compose file."""
     docker_service = DockerService(db)
     success, result = await docker_service.validate_compose_file(path)
-    
+
     if not success:
         return DockerComposeValidationResponse(
             valid=False,
             errors=[result.get("error", "Unknown error")],
             warnings=[],
         )
-    
+
     return DockerComposeValidationResponse(
         valid=True,
         errors=[],
@@ -1056,10 +1176,10 @@ async def prune_images(
     """Remove unused images."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, result = await docker_service.prune_images(dangling=filter_dangling)
-    
+
     if not success:
         return {"success": False, "error": result.get("error", "Unknown error")}
-    
+
     return {
         "success": True,
         "images_deleted": result.get("ImagesDeleted", []),
@@ -1075,10 +1195,10 @@ async def prune_networks(
     """Remove unused networks."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, result = await docker_service.prune_networks()
-    
+
     if not success:
         return {"success": False, "error": result.get("error", "Unknown error")}
-    
+
     return {
         "success": True,
         "networks_deleted": result.get("NetworksDeleted", []),
@@ -1093,10 +1213,10 @@ async def prune_volumes(
     """Remove unused volumes."""
     docker_service = DockerService(db, user_id=current_user.id)
     success, result = await docker_service.prune_volumes()
-    
+
     if not success:
         return {"success": False, "error": result.get("error", "Unknown error")}
-    
+
     return {
         "success": True,
         "volumes_deleted": result.get("VolumesDeleted", []),

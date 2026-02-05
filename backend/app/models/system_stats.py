@@ -5,7 +5,7 @@ from datetime import datetime
 
 class SystemStats(Base):
     __tablename__ = "system_stats"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     cpu_usage = Column(Float, default=0.0)
     memory_usage = Column(Float, default=0.0)

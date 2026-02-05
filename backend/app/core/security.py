@@ -37,7 +37,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.utcnow() + (
+        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
 
@@ -50,8 +52,7 @@ def create_refresh_token(data: dict) -> str:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -76,11 +77,8 @@ async def get_current_user(
 
 
 async def get_current_active_superuser(current_user: User = Depends(get_current_user)) -> User:
-    if not getattr(current_user, 'is_superuser', False):
-        raise HTTPException(
-            status_code=400,
-            detail="The user doesn't have enough privileges"
-        )
+    if not getattr(current_user, "is_superuser", False):
+        raise HTTPException(status_code=400, detail="The user doesn't have enough privileges")
     return current_user
 
 
@@ -107,9 +105,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 status_code=429,
                 content={
                     "detail": "Too many requests. Please try again later.",
-                    "retry_after": self.window_seconds
+                    "retry_after": self.window_seconds,
                 },
-                headers={"Retry-After": str(self.window_seconds)}
+                headers={"Retry-After": str(self.window_seconds)},
             )
 
         RATE_LIMIT_STORE[client_ip].append(current_time)
@@ -142,19 +140,18 @@ class RequestSizeMiddleware(BaseHTTPMiddleware):
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > self.MAX_BODY_SIZE:
             return JSONResponse(
-                status_code=413,
-                content={"detail": "Request body too large. Maximum size is 10MB."}
+                status_code=413, content={"detail": "Request body too large. Maximum size is 10MB."}
             )
         return await call_next(request)
 
 
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
     DANGEROUS_PATTERNS = [
-        re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-        re.compile(r'javascript:', re.IGNORECASE),
-        re.compile(r'on\w+\s*=', re.IGNORECASE),
-        re.compile(r'\.\./'),
-        re.compile(r'\x00'),
+        re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+        re.compile(r"javascript:", re.IGNORECASE),
+        re.compile(r"on\w+\s*=", re.IGNORECASE),
+        re.compile(r"\.\./"),
+        re.compile(r"\x00"),
     ]
 
     async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
@@ -162,13 +159,12 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             try:
                 body = await request.body()
                 if body:
-                    body_str = body.decode('utf-8', errors='ignore')
+                    body_str = body.decode("utf-8", errors="ignore")
                     for pattern in self.DANGEROUS_PATTERNS:
                         if pattern.search(body_str):
                             logger.warning(f"Dangerous input from {request.client.host}")
                             return JSONResponse(
-                                status_code=400,
-                                content={"detail": "Invalid input detected."}
+                                status_code=400, content={"detail": "Invalid input detected."}
                             )
                     request._body = body
             except Exception:

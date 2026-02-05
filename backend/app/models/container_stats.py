@@ -6,7 +6,7 @@ from datetime import datetime
 
 class ContainerStats(Base):
     __tablename__ = "container_stats"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     container_id = Column(Integer, ForeignKey("containers.id"), nullable=False)
     cpu_usage = Column(Float, default=0.0)
@@ -18,5 +18,5 @@ class ContainerStats(Base):
     block_write = Column(Float, default=0.0)
     pids = Column(Integer, default=0)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    
+
     container = relationship("Container", back_populates="stats")
