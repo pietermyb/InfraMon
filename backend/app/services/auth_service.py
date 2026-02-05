@@ -1,15 +1,16 @@
 """Authentication service."""
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from fastapi import HTTPException, status
 from datetime import timedelta
 
+from fastapi import HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import (
-    verify_password,
-    get_password_hash,
     create_access_token,
     create_refresh_token,
+    get_password_hash,
+    verify_password,
 )
 from app.models.user import User
 from app.schemas import UserCreate

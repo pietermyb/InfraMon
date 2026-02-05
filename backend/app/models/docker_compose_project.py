@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, JSON
-from app.db.database import Base
 from datetime import datetime
+
+from sqlalchemy import JSON, Column, DateTime, Integer, String, Text
+
+from app.db.database import Base
 
 
 class DockerComposeProject(Base):

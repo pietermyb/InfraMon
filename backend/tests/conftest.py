@@ -1,14 +1,15 @@
-import pytest
 import asyncio
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.pool import StaticPool
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import MagicMock, patch
 
-from app.main import app
-from app.db.database import Base, get_db
+import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
+
 from app.core.config import settings
+from app.db.database import Base, get_db
+from app.main import app
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -61,9 +62,10 @@ async def client(test_db) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 async def test_user(test_db):
-    from app.models.user import User
-    from app.core.auth import get_password_hash
     from sqlalchemy import select
+
+    from app.core.auth import get_password_hash
+    from app.models.user import User
 
     result = await test_db.execute(select(User).where(User.username == "testuser"))
     existing_user = result.scalar_one_or_none()
@@ -212,9 +214,10 @@ def mock_psutil():
 
 @pytest.fixture
 async def test_superuser(test_db):
-    from app.models.user import User
-    from app.core.auth import get_password_hash
     from sqlalchemy import select
+
+    from app.core.auth import get_password_hash
+    from app.models.user import User
 
     result = await test_db.execute(select(User).where(User.username == "admin"))
     existing_user = result.scalar_one_or_none()

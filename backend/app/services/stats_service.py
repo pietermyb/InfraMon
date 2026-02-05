@@ -1,20 +1,21 @@
 """Statistics service for system and container metrics."""
 
 import asyncio
-import logging
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc, asc
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, AsyncGenerator
-import psutil
-import os
-from pathlib import Path
 import json
+import logging
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
-from app.models.system_stats import SystemStats
-from app.models.container_stats import ContainerStats
+import psutil
+from sqlalchemy import and_, asc, desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.container import Container
 from app.models.container_group import ContainerGroup
+from app.models.container_stats import ContainerStats
+from app.models.system_stats import SystemStats
 from app.services.docker_service import DockerService
 
 logger = logging.getLogger(__name__)

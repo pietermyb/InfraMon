@@ -1,7 +1,8 @@
 """Custom exceptions for the application."""
 
+from typing import Any, Optional
+
 from fastapi import HTTPException, status
-from typing import Optional, Any
 
 
 class AppException(HTTPException):

@@ -1,19 +1,20 @@
 """OAuth 2.0 authentication service with JWT tokens."""
 
+import hashlib
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status, Request
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import (
+    HTTPAuthorizationCredentials,
     OAuth2PasswordBearer,
     OAuth2PasswordRequestForm,
-    HTTPAuthorizationCredentials,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy import select, text
-import secrets
-import hashlib
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.database import get_db

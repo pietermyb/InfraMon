@@ -1,21 +1,22 @@
+import asyncio
+import logging
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import logging
-import sys
-import asyncio
-from pathlib import Path
 
+from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.security import (
-    RateLimitMiddleware,
-    SecurityHeadersMiddleware,
-    RequestSizeMiddleware,
     InputSanitizationMiddleware,
+    RateLimitMiddleware,
+    RequestSizeMiddleware,
+    SecurityHeadersMiddleware,
 )
-from app.db.database import init_db, close_db
-from app.api.v1.router import api_router
+from app.db.database import close_db, init_db
 
 LOG_LEVEL = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
 logging.basicConfig(
@@ -29,11 +30,12 @@ logger = logging.getLogger(__name__)
 async def create_admin_user():
     """Create admin user if it doesn't exist."""
     try:
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-        from sqlalchemy import text
-        from passlib.context import CryptContext
         import secrets
         import string
+
+        from passlib.context import CryptContext
+        from sqlalchemy import text
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
         engine = create_async_engine(settings.DATABASE_URL, echo=False)
         async_session = async_sessionmaker(engine, expire_on_commit=False)
@@ -79,8 +81,9 @@ async def create_admin_user():
 async def create_default_groups():
     """Create default container groups if they don't exist."""
     try:
-        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
         from sqlalchemy import text
+        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
         from app.models.container_group import ContainerGroup
 
         engine = create_async_engine(settings.DATABASE_URL, echo=False)

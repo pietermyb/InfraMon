@@ -115,9 +115,9 @@ jobs:
       - name: Lint backend code
         run: |
           pip install black flake8 isort
-          black backend/
-          flake8 backend/
-          isort --check-only backend/
+          black --line-length 100 backend/ alembic/
+          flake8 --config .flake8 backend/ alembic/
+          isort --check-only backend/ alembic/
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

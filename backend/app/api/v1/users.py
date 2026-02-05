@@ -1,21 +1,22 @@
 """User management API endpoints."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
-from app.core.auth import get_current_user, get_current_active_superuser
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import get_current_active_superuser, get_current_user
 from app.db.database import get_db
 from app.models.user import User
+from app.schemas.response import ErrorResponse, create_paginated_response
 from app.schemas.user import (
     UserCreate,
-    UserUpdate,
-    UserResponse,
     UserListResponse,
     UserPasswordUpdate,
+    UserResponse,
+    UserUpdate,
 )
-from app.schemas.response import ErrorResponse, create_paginated_response
 
 router = APIRouter(prefix="/users", tags=["Users Management"])
 

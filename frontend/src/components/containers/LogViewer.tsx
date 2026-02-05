@@ -115,7 +115,9 @@ export default function LogViewer({ containerId }: LogViewerProps) {
                     } else {
                         try {
                             fitAddon.fit()
-                        } catch (e) { }
+                        } catch (e) {
+                            // Silent catch for optional terminal operations
+                        }
                     }
                 }
             }
@@ -127,7 +129,9 @@ export default function LogViewer({ containerId }: LogViewerProps) {
             resizeObserver.disconnect()
             try {
                 xterm.dispose()
-            } catch (e) { }
+            } catch (e) {
+                // Silent catch for terminal cleanup
+            }
             xtermRef.current = null
             fitAddonRef.current = null
         }

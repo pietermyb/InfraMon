@@ -1,9 +1,10 @@
 """User schemas for API requests and responses."""
 
+import re
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr, field_validator
-import re
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserBase(BaseModel):

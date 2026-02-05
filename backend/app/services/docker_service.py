@@ -1,23 +1,24 @@
 """Docker/Podman/Colima integration service."""
 
-import docker
-from docker.errors import DockerException, APIError
 import asyncio
-import os
-from datetime import datetime
-import logging
-from pathlib import Path
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import AsyncGenerator, Dict, Any, Optional, List
 import json
+import logging
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from pathlib import Path
+from typing import Any, AsyncGenerator, Dict, List, Optional
+
+import docker
+from docker.errors import APIError, DockerException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.models.audit_log import AuditLog
 from app.models.container import Container
 from app.models.docker_compose_project import DockerComposeProject
-from app.models.audit_log import AuditLog
 from app.schemas import (
     ContainerDetailResponse,
     DockerComposeProjectResponse,

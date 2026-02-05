@@ -1,65 +1,66 @@
 """API router with all endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List, Dict, Any
 import asyncio
-import json
 import base64
+import json
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from app.db.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.auth import get_current_user
+from app.db.database import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse, UserLogin, UserPasswordUpdate
-from app.schemas.response import DataResponse
 from app.schemas.container import (
-    ContainerResponse,
-    ContainerDetailResponse,
-    ContainerLogsResponse,
     ContainerActionRequest,
     ContainerActionResponse,
-    ContainerListResponse,
-    ContainerGroupResponse,
-    ContainerGroupCreate,
-    ContainerGroupUpdate,
     ContainerBulkActionRequest,
     ContainerBulkActionResponse,
-    ContainerUpdateRequest,
-    ContainerRenameRequest,
+    ContainerDetailResponse,
+    ContainerDiffResponse,
     ContainerExecRequest,
     ContainerExecResponse,
-    ContainerShellInitResponse,
-    ContainerResizeRequest,
-    ContainerDiffResponse,
+    ContainerGroupCreate,
+    ContainerGroupResponse,
+    ContainerGroupUpdate,
+    ContainerListResponse,
+    ContainerLogsResponse,
     ContainerPruneResponse,
-)
-from app.schemas.stats import (
-    SystemStatsResponse,
-    DashboardStatsResponse,
-    SystemInfoResponse,
-    DiskPartitionResponse,
-    NetworkInterfaceResponse,
-    NetworkConnectionResponse,
-    ProcessResponse,
-    ContainerFilesystemResponse,
-    SystemStatsHistoryResponse,
-    ContainerStatsHistoryResponse,
-    AggregatedStatsResponse,
-    ResourceUsageResponse,
-    TopConsumersResponse,
-    ContainerComparisonResponse,
-    ResourceTrendsResponse,
-    PruneStatsResponse,
-    ExportStatsResponse,
-    ContainerGroupStatsResponse,
+    ContainerRenameRequest,
+    ContainerResizeRequest,
+    ContainerResponse,
+    ContainerShellInitResponse,
+    ContainerUpdateRequest,
 )
 from app.schemas.docker_compose import (
     DockerComposeFileContent,
     DockerComposeValidationResponse,
 )
-from app.services.docker_service import DockerService
+from app.schemas.response import DataResponse
+from app.schemas.stats import (
+    AggregatedStatsResponse,
+    ContainerComparisonResponse,
+    ContainerFilesystemResponse,
+    ContainerGroupStatsResponse,
+    ContainerStatsHistoryResponse,
+    DashboardStatsResponse,
+    DiskPartitionResponse,
+    ExportStatsResponse,
+    NetworkConnectionResponse,
+    NetworkInterfaceResponse,
+    ProcessResponse,
+    PruneStatsResponse,
+    ResourceTrendsResponse,
+    ResourceUsageResponse,
+    SystemInfoResponse,
+    SystemStatsHistoryResponse,
+    SystemStatsResponse,
+    TopConsumersResponse,
+)
+from app.schemas.user import UserLogin, UserPasswordUpdate, UserResponse
 from app.services.container_service import ContainerService
+from app.services.docker_service import DockerService
 from app.services.stats_service import StatsService
 
 api_router = APIRouter()
@@ -104,8 +105,9 @@ async def health_check():
 @api_router.post("/auth/login", response_model=dict, tags=["Authentication"])
 async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
     """User login endpoint."""
-    from app.core.auth import verify_password, create_access_token, create_refresh_token
     from sqlalchemy import select
+
+    from app.core.auth import create_access_token, create_refresh_token, verify_password
 
     result = await db.execute(select(User).where(User.username == request.username))
     user = result.scalar_one_or_none()
@@ -146,7 +148,7 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ):
     """Change current user password."""
-    from app.core.auth import verify_password, get_password_hash
+    from app.core.auth import get_password_hash, verify_password
 
     if not verify_password(password_data.current_password, current_user.hashed_password):
         raise HTTPException(

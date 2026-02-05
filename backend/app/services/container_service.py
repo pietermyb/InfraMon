@@ -1,8 +1,9 @@
 """Container management service."""
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from typing import List, Optional
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.container import Container
 from app.models.container_group import ContainerGroup
