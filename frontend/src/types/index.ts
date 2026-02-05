@@ -423,8 +423,9 @@ export interface UpdateUserRequest {
 }
 
 export interface ChangePasswordRequest {
-  old_password: string
+  current_password: string
   new_password: string
+  new_password_confirm: string
 }
 
 export interface UserListResponse {

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from app.db.database import get_db
 from app.core.auth import get_current_user
 from app.models.user import User
-from app.schemas.user import UserResponse, UserLogin
+from app.schemas.user import UserResponse, UserLogin, UserPasswordUpdate
 from app.schemas.response import DataResponse
 from app.schemas.container import (
     ContainerResponse, ContainerDetailResponse, ContainerLogsResponse,
@@ -113,6 +113,30 @@ async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user."""
     return UserResponse.model_validate(current_user)
+
+
+@api_router.post("/auth/change-password", response_model=dict, tags=["Authentication"])
+async def change_password(
+    password_data: UserPasswordUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change current user password."""
+    from app.core.auth import verify_password, get_password_hash
+    
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect current password",
+        )
+    
+    current_user.hashed_password = get_password_hash(password_data.new_password)
+    current_user.updated_at = datetime.utcnow()
+    
+    db.add(current_user)
+    await db.commit()
+    
+    return {"message": "Password updated successfully"}
 
 
 @api_router.get("/containers", response_model=DataResponse, tags=["Containers"])

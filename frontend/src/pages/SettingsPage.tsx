@@ -1,10 +1,20 @@
+import { useState } from 'react'
 import { useTheme } from '../hooks/useTheme'
 import { Card, Button } from '../components/ui'
-import { SunIcon, MoonIcon, ComputerDesktopIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { SunIcon, MoonIcon, CheckCircleIcon, KeyIcon } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
+import api from '../api/client'
+import { ChangePasswordRequest } from '../types'
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme()
+  const [formData, setFormData] = useState<ChangePasswordRequest>({
+    current_password: '',
+    new_password: '',
+    new_password_confirm: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const themeOptions = [
     {
@@ -20,18 +30,40 @@ export default function SettingsPage() {
       description: 'Easy on the eyes in low light',
       icon: MoonIcon,
       active: theme === 'dark',
-    },
-    {
-      id: 'system',
-      name: 'System Preference',
-      description: 'Sync with your operating system',
-      icon: ComputerDesktopIcon,
-      active: false, // For now we only have toggle, but we can expand this
     }
   ]
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    if (formData.new_password !== formData.new_password_confirm) {
+      setMessage({ type: 'error', text: 'New passwords do not match' })
+      setLoading(false)
+      return
+    }
+
+    try {
+      await api.post('/auth/change-password', formData)
+      setMessage({ type: 'success', text: 'Password updated successfully' })
+      setFormData({
+        current_password: '',
+        new_password: '',
+        new_password_confirm: ''
+      })
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.detail || 'Failed to update password'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold text-text-title">Settings</h1>
         <p className="mt-1 text-text-body">
@@ -43,19 +75,12 @@ export default function SettingsPage() {
         <h3 className="text-lg font-semibold text-text-title flex items-center gap-2">
           Appearance
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {themeOptions.map((option) => (
             <button
               key={option.id}
               onClick={() => {
-                if (option.id === 'system') {
-                  // Logic for system handled by removing item or similar, 
-                  // but for now let's just make the toggle more obvious
-                  const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if ((systemIsDark && theme !== 'dark') || (!systemIsDark && theme !== 'light')) {
-                    toggleTheme();
-                  }
-                } else if ((option.id === 'light' && theme === 'dark') || (option.id === 'dark' && theme === 'light')) {
+                if ((option.id === 'light' && theme === 'dark') || (option.id === 'dark' && theme === 'light')) {
                   toggleTheme();
                 }
               }}
@@ -86,15 +111,65 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <Card className="bg-gradient-to-br from-primary-600 to-primary-800 text-white border-none p-8">
-        <h3 className="text-xl font-bold mb-2">More coming soon</h3>
-        <p className="text-primary-100 mb-6 max-w-md">
-          We're working on notification settings, language preferences, and custom dashboard layouts.
-        </p>
-        <Button variant="secondary" className="bg-white/10 hover:bg-white/20 border-white/20 text-white">
-          View Roadmap
-        </Button>
-      </Card>
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold text-text-title flex items-center gap-2">
+          <KeyIcon className="h-5 w-5" />
+          Security
+        </h3>
+        <Card className="p-6 bg-canvas-card border-border-subtle">
+          <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+            <h4 className="font-medium text-text-title">Change Password</h4>
+
+            {message && (
+              <div className={clsx(
+                "p-3 rounded-md text-sm",
+                message.type === 'success' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              )}>
+                {message.text}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-text-body mb-1">Current Password</label>
+              <input
+                type="password"
+                required
+                value={formData.current_password}
+                onChange={e => setFormData({ ...formData, current_password: e.target.value })}
+                className="w-full px-3 py-2 bg-canvas-base border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-text-title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-body mb-1">New Password</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={formData.new_password}
+                onChange={e => setFormData({ ...formData, new_password: e.target.value })}
+                className="w-full px-3 py-2 bg-canvas-base border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-text-title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-body mb-1">Confirm New Password</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={formData.new_password_confirm}
+                onChange={e => setFormData({ ...formData, new_password_confirm: e.target.value })}
+                className="w-full px-3 py-2 bg-canvas-base border border-border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-text-title"
+              />
+            </div>
+
+            <div className="pt-2">
+              <Button type="submit" variant="primary" isLoading={loading}>
+                Update Password
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </section>
     </div>
   )
 }
