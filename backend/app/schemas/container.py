@@ -140,12 +140,12 @@ class ContainerDetailResponse(ContainerResponse):
     volumes: Optional[List[Dict[str, Any]]] = None
     environment: Optional[List[Dict[str, str]]] = None
     networks: Optional[List[str]] = None
-    labels: Optional[Dict[str, str]] = None
+    labels: Optional[Dict[str, Any]] = None
     command: Optional[List[str]] = None
     created: Optional[str] = None
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
-    restart_policy: Optional[Dict[str, str]] = None
+    restart_policy: Optional[Dict[str, Any]] = None
     healthcheck: Optional[Dict[str, Any]] = None
     hostname: Optional[str] = None
     ip_address: Optional[str] = None

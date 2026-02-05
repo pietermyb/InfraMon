@@ -37,11 +37,11 @@ export interface ContainerDetailResponse extends ContainerResponse {
   volumes?: Array<Record<string, unknown>>
   environment?: Array<{ name: string; value: string }>
   networks?: string[]
-  labels?: Record<string, string>
+  labels?: Record<string, unknown>
   command?: string[]
   started_at?: string
   finished_at?: string
-  restart_policy?: Record<string, string>
+  restart_policy?: Record<string, unknown>
   healthcheck?: Record<string, unknown>
   hostname?: string
   ip_address?: string
