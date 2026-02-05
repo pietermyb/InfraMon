@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "InfraMon"
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 8065
     API_V1_PREFIX: str = "/api/v1"
     
     DATABASE_URL: str = "sqlite+aiosqlite:///./inframon.db"

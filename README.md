@@ -48,8 +48,8 @@ make up
 ```
 
 5. Access the application:
-- Web UI: http://localhost:3000
-- API Docs: http://localhost:8000/api/docs
+- Web UI: http://localhost:3005
+- API Docs: http://localhost:8065/api/docs
 
 ## Development
 

@@ -6,7 +6,7 @@ services:
       target: development
     container_name: inframon-backend-dev
     ports:
-      - "8000:8000"
+      - "8065:8000"
     volumes:
       - ./backend:/opt/InfraMon
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: inframon-frontend-dev
     ports:
-      - "3000:3000"
+      - "3005:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules

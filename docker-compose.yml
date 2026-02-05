@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: inframon-backend
     ports:
-      - "8000:8000"
+      - "8065:8000"
     volumes:
       - ./backend:/opt/InfraMon
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     container_name: inframon-frontend
     ports:
-      - "3000:80"
+      - "3005:80"
     depends_on:
       - backend
     networks:
