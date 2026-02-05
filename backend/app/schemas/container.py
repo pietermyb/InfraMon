@@ -27,6 +27,95 @@ class ContainerUpdate(BaseModel):
     name: Optional[str] = None
 
 
+class ContainerUpdateRequest(BaseModel):
+    """Container resource update request model."""
+    
+    memory_limit: Optional[int] = Field(None, ge=0, description="Memory limit in bytes")
+    cpu_shares: Optional[int] = Field(None, ge=0, le=1024, description="CPU shares")
+
+
+class ContainerRenameRequest(BaseModel):
+    """Container rename request model."""
+    
+    new_name: str = Field(..., min_length=1, max_length=128, pattern="^[a-zA-Z0-9][a-zA-Z0-9_.-]*$")
+
+
+class ContainerExecRequest(BaseModel):
+    """Container exec request model."""
+    
+    cmd: List[str] = Field(..., min_length=1, description="Command to execute")
+    working_dir: Optional[str] = None
+    user: Optional[str] = None
+    environment: Optional[Dict[str, str]] = None
+
+
+class ContainerExecResponse(BaseModel):
+    """Container exec response model."""
+    
+    success: bool
+    output: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ContainerShellInitResponse(BaseModel):
+    """Container shell initialization response model."""
+    
+    success: bool
+    exec_id: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ContainerResizeRequest(BaseModel):
+    """Container terminal resize request model."""
+    
+    height: int = Field(24, ge=1, le=200)
+    width: int = Field(80, ge=1, le=500)
+
+
+class ContainerDiffItem(BaseModel):
+    """Container diff item model."""
+    
+    path: str
+    kind: str
+    change: Optional[str] = None
+
+
+class ContainerDiffResponse(BaseModel):
+    """Container diff response model."""
+    
+    container_id: str
+    changes: List[ContainerDiffItem]
+
+
+class ContainerPruneResponse(BaseModel):
+    """Container prune response model."""
+    
+    success: bool
+    deleted_containers: List[str]
+    space_reclaimed: int
+
+
+class ContainerLogsStreamResponse(BaseModel):
+    """Container logs streaming response model."""
+    
+    container_id: str
+    log_line: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ContainerStatsStreamResponse(BaseModel):
+    """Container stats streaming response model."""
+    
+    container_id: str
+    cpu_usage: float
+    memory_usage: float
+    memory_percent: float
+    network_rx: float
+    network_tx: float
+    pids: int
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
 class ContainerResponse(BaseModel):
     """Container response model."""
     
@@ -52,12 +141,29 @@ class ContainerDetailResponse(ContainerResponse):
     environment: Optional[List[Dict[str, str]]] = None
     networks: Optional[List[str]] = None
     labels: Optional[Dict[str, str]] = None
-    command: Optional[str] = None
+    command: Optional[List[str]] = None
     created: Optional[str] = None
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
     restart_policy: Optional[Dict[str, str]] = None
     healthcheck: Optional[Dict[str, Any]] = None
+    hostname: Optional[str] = None
+    ip_address: Optional[str] = None
+    gateway: Optional[str] = None
+    mac_address: Optional[str] = None
+    memory_limit: Optional[int] = None
+    memory_swap: Optional[int] = None
+    cpu_shares: Optional[int] = None
+    cpu_period: Optional[int] = None
+    cpu_quota: Optional[int] = None
+    working_dir: Optional[str] = None
+    entrypoint: Optional[List[str]] = None
+    user: Optional[str] = None
+    tty: Optional[bool] = None
+    open_stdin: Optional[bool] = None
+    restart_count: Optional[int] = None
+    OOMKilled: Optional[bool] = None
+    exit_code: Optional[int] = None
 
 
 class ContainerStatsResponse(BaseModel):
