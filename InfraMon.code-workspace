@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "backend"
+    }
+  ],
+  "settings": {
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+      "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.defaultInterpreterPath": "/opt/InfraMon/InfraMonSrc/backend/venv/bin/python",
+    "python.autoComplete.extraPaths": [
+      "/opt/InfraMon/InfraMonSrc/backend"
+    ],
+    "python.analysis.extraPaths": [
+      "/opt/InfraMon/InfraMonSrc/backend"
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "terminal.integrated.env.linux": {
+      "PYTHONPATH": "/opt/InfraMon/InfraMonSrc/backend"
+    }
+  }
+}
