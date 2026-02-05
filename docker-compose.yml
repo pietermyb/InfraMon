@@ -11,7 +11,7 @@ services:
     volumes:
       - ./backend:/opt/InfraMon
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /:/hostfs:ro # Mount host filesystem to allow reading compose files
+      - /:/hostfs:ro
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./inframon.db
       - DEBUG=true
@@ -28,6 +28,11 @@ services:
     networks:
       - inframon-network
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -39,6 +44,11 @@ services:
     networks:
       - inframon-network
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   inframon-network:

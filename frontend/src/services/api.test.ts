@@ -408,10 +408,6 @@ describe('Backend-Frontend Integration: Error Handling', () => {
   it('api client Authorization header interceptor logic works correctly', () => {
     localStorage.setItem('token', 'test-token')
 
-    const mockConfigWithoutToken = {
-      headers: {},
-    }
-
     const expectedHeaders = {
       Authorization: 'Bearer test-token',
     }

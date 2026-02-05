@@ -8,6 +8,12 @@ import asyncio
 from pathlib import Path
 
 from app.core.config import settings
+from app.core.security import (
+    RateLimitMiddleware,
+    SecurityHeadersMiddleware,
+    RequestSizeMiddleware,
+    InputSanitizationMiddleware,
+)
 from app.db.database import init_db, close_db
 from app.api.v1.router import api_router
 
@@ -42,8 +48,8 @@ async def create_admin_user():
 
             if not existing:
                 if not settings.ADMIN_PASSWORD:
-                    alphabet = string.ascii_letters + string.digits
-                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+                    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(32))
                 else:
                     admin_password = settings.ADMIN_PASSWORD[:72]
 
@@ -144,11 +150,16 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"] if settings.CORS_ALLOW_ALL else settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestSizeMiddleware)
+app.add_middleware(InputSanitizationMiddleware)
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
 app.include_router(api_router, prefix="/api/v1")
 
