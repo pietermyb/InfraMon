@@ -694,6 +694,11 @@ The project will be considered successful when:
 - [ ] 9.5.8 Add log pagination
 - [ ] 9.5.9 Implement log clear functionality
 
+#### [ ] 9.11 Build and Test implementation
+- [ ] 9.11.1 Run a npm build to ensure all new frontend code compiles and has no errors.
+- [ ] 9.11.2 Run the backend API and ensure it compiles and has no errors.
+- [ ] 9.11.3 Run the docker container build and ensure it has no errors.
+
 ---
 
 ### [ ] Phase 10: Frontend Development - Theme and Polish
@@ -746,6 +751,11 @@ The project will be considered successful when:
 - [ ] 10.4.7 Implement bundle size monitoring
 - [ ] 10.4.8 Add performance metrics tracking
 - [ ] 10.4.9 Implement service worker for caching
+
+#### [ ] 10.5 Build and Test implementation
+- [ ] 10.5.1 Run a npm build to ensure all new frontend code compiles and has no errors.
+- [ ] 10.5.2 Run the backend API and ensure it compiles and has no errors.
+- [ ] 10.5.3 Run the docker container build and ensure it has no errors.
 
 ---
 

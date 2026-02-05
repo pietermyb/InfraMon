@@ -18,7 +18,7 @@ from app.models.container import Container
 from app.models.docker_compose_project import DockerComposeProject
 from app.models.audit_log import AuditLog
 from app.schemas import (
-    ContainerDetailResponse, ContainerLogsRequest,
+    ContainerDetailResponse,
     DockerComposeProjectResponse,
 )
 from app.services.container_service import ContainerService

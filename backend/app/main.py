@@ -42,10 +42,10 @@ async def create_admin_user():
 
             if not existing:
                 if not settings.ADMIN_PASSWORD:
-                    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(32))
+                    alphabet = string.ascii_letters + string.digits
+                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
                 else:
-                    admin_password = settings.ADMIN_PASSWORD
+                    admin_password = settings.ADMIN_PASSWORD[:72]
 
                 from app.models.user import User
                 admin_user = User(

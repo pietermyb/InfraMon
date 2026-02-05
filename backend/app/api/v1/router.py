@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import asyncio
 import json
 import base64
@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from app.db.database import get_db
 from app.core.auth import get_current_user
 from app.models.user import User
-from app.schemas.user import UserResponse, LoginRequest
+from app.schemas.user import UserResponse, UserLogin
 from app.schemas.container import (
     ContainerResponse, ContainerDetailResponse, ContainerLogsResponse,
     ContainerActionRequest, ContainerActionResponse, ContainerListResponse,
@@ -75,7 +75,7 @@ async def health_check():
 
 
 @api_router.post("/auth/login", response_model=dict, tags=["Authentication"])
-async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
     """User login endpoint."""
     from app.core.auth import verify_password, create_access_token, create_refresh_token
     from sqlalchemy import select

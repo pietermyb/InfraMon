@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
   }, [location.pathname, navigate])
 
+  const refreshTokenRef = useRef<() => Promise<void>>()
+
   const clearSessionTimers = useCallback(() => {
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current)
@@ -71,24 +73,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const setupSessionTimers = useCallback((accessToken: string) => {
+  const performLogout = useCallback(() => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user')
+    delete axios.defaults.headers.common['Authorization']
+    
     clearSessionTimers()
-
-    refreshTimeoutRef.current = setTimeout(async () => {
-      await refreshToken()
-    }, TOKEN_REFRESH_INTERVAL)
-
-    sessionTimeoutRef.current = setTimeout(() => {
-      logout()
-    }, SESSION_TIMEOUT)
-
-    lastActivityRef.current = Date.now()
+    setUser(null)
   }, [clearSessionTimers])
 
   const refreshToken = useCallback(async () => {
     const refreshTokenValue = localStorage.getItem('refresh_token')
     if (!refreshTokenValue) {
-      logout()
+      performLogout()
       return
     }
 
@@ -103,9 +101,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setupSessionTimers(access_token)
     } catch {
-      logout()
+      performLogout()
     }
-  }, [setupSessionTimers])
+  }, [performLogout])
+
+  const setupSessionTimers = useCallback((accessToken: string) => {
+    clearSessionTimers()
+
+    refreshTimeoutRef.current = setTimeout(async () => {
+      await refreshTokenRef.current?.()
+    }, TOKEN_REFRESH_INTERVAL)
+
+    sessionTimeoutRef.current = setTimeout(() => {
+      performLogout()
+    }, SESSION_TIMEOUT)
+
+    lastActivityRef.current = Date.now()
+  }, [clearSessionTimers, performLogout])
+
+  // Keep refreshToken ref updated
+  refreshTokenRef.current = refreshToken
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)
@@ -126,18 +141,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setupAxiosInterceptors, setupSessionTimers])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
-    delete axios.defaults.headers.common['Authorization']
-    
-    clearSessionTimers()
-    setUser(null)
+    performLogout()
     
     if (!location.pathname.includes('/login')) {
       navigate('/login', { replace: true })
     }
-  }, [clearSessionTimers, location.pathname, navigate])
+  }, [performLogout, location.pathname, navigate])
 
   const updateUser = useCallback((updates: Partial<User>) => {
     if (user) {
@@ -175,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const elapsed = Date.now() - lastActivityRef.current
       setSessionTimeRemaining(Math.max(0, SESSION_TIMEOUT - elapsed))
       
-      if (elapsed >= SESSION_TIMEOUT) {
+      if (elapsed >= SESSION_TIMEOUT && localStorage.getItem('token')) {
         logout()
       }
     }

@@ -31,8 +31,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: inframon-frontend
-    ports:
-      - "3005:80"
     depends_on:
       - backend
     networks:
