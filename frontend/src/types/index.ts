@@ -351,8 +351,8 @@ export interface ExportResponse {
   csv?: string
 }
 
- {
-  Serverexport interface DockerInfoVersion: string
+export interface DockerInfo {
+  Version: string
   OperatingSystem: string
   OSType: string
   Architecture: string

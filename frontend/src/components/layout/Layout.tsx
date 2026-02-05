@@ -3,6 +3,8 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
 import { Button, Modal } from '../../components/ui'
+import { Breadcrumbs } from './Breadcrumbs'
+import { QuickActionsToolbar } from './QuickActionsToolbar'
 import {
   HomeIcon,
   CubeIcon,
@@ -12,7 +14,6 @@ import {
   MoonIcon,
   Bars3Icon,
   XMarkIcon,
-  BellIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
 
@@ -30,6 +31,7 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const formatSessionTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -41,6 +43,13 @@ export default function Layout() {
     logout()
     setShowLogoutModal(false)
   }
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
+
+  const currentPageName = location.pathname.split('/').pop() || 'Dashboard'
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -109,46 +118,56 @@ export default function Layout() {
       </div>
 
       <div className="md:pl-64">
-        <div className="sticky top-0 z-40 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            className="px-4 text-gray-500 md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-          </button>
-          
-          <div className="flex-1 flex items-center justify-end px-4 space-x-4">
-            <button className="relative p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-              <BellIcon className="h-6 w-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
-            
-            <div className="relative">
+        <div className="sticky top-0 z-40 flex flex-col sm:flex-row h-auto sm:h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between flex-1 px-4 py-3 sm:py-0">
+            <div className="flex items-center gap-4">
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                type="button"
+                className="px-4 text-gray-500 md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <UserCircleIcon className="h-8 w-8 text-gray-400" />
+                {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
               </button>
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                  {currentPageName}
+                </h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <QuickActionsToolbar
+                onRefresh={handleRefresh}
+                onNotifications={() => {}}
+                onSettings={() => navigate('/settings')}
+                isRefreshing={isRefreshing}
+              />
               
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.username}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+              <div className="relative ml-2">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <UserCircleIcon className="h-8 w-8 text-gray-400" />
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.username}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        setShowLogoutModal(true)
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      Sign out
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      setShowUserMenu(false)
-                      setShowLogoutModal(true)
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -190,8 +209,24 @@ export default function Layout() {
         )}
 
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 hidden sm:block">
+            <Breadcrumbs />
+          </div>
           <Outlet />
         </main>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <span>InfraMon v1.0.0</span>
+            <div className="flex items-center gap-4">
+              <span>Connected to Docker</span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                Online
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <Modal
