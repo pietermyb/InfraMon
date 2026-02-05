@@ -48,8 +48,8 @@ async def create_admin_user():
 
             if not existing:
                 if not settings.ADMIN_PASSWORD:
-                    alphabet = string.ascii_letters + string.digits
-                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+                    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+                    admin_password = ''.join(secrets.choice(alphabet) for _ in range(32))
                 else:
                     admin_password = settings.ADMIN_PASSWORD[:72]
 
