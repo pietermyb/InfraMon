@@ -39,7 +39,7 @@ jobs:
         working-directory: ./backend
         run: |
           source ../backend/venv/bin/activate
-          PYTHONPATH=. ./venv/bin/pytest tests/ -v --tb=short
+          PYTHONPATH=. ./venv/bin/pytest tests/ -v --tb=short --cov=app --cov-fail-under=30
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -115,9 +115,9 @@ jobs:
       - name: Lint backend code
         run: |
           pip install black flake8 isort
-          black --line-length 100 backend/ alembic/
-          flake8 --config .flake8 backend/ alembic/
-          isort --check-only backend/ alembic/
+          black --line-length 100 backend/ backend/alembic/
+          flake8 --config .flake8 backend/
+          isort --check-only backend/ backend/alembic/
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
