@@ -15,3 +15,5 @@ per-file-ignores =
     tests/*: S101
     alembic/versions/*.py: E501, F401
     middleware.py: F821
+    scripts/*.py: F401, F541, E402
+    debug_compose.py: F401

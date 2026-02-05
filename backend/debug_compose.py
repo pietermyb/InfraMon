@@ -1,7 +1,9 @@
 import asyncio
 import logging
-from app.services.docker_service import DockerService
+
 from app.core.config import settings
+from app.services.docker_service import DockerService
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

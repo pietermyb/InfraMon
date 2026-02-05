@@ -6,10 +6,12 @@ import string
 import sys
 from pathlib import Path
 
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
 
 DATABASE_URL = "sqlite+aiosqlite:///./inframon.db"
 
@@ -41,9 +43,10 @@ async def init_database():
     print("Database tables created successfully!")
 
     async with async_session() as session:
-        from app.models.user import User
-        from app.models.container_group import ContainerGroup
         from passlib.context import CryptContext
+
+        from app.models.container_group import ContainerGroup
+        from app.models.user import User
 
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

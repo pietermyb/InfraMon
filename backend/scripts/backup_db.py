@@ -2,10 +2,12 @@
 
 import asyncio
 import shutil
-from pathlib import Path
 from datetime import datetime
-import aiosqlite
+from pathlib import Path
 from typing import Optional
+
+import aiosqlite
+
 
 DATABASE_PATH = Path("./inframon.db")
 BACKUP_DIR = Path("./backups")
