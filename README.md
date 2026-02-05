@@ -1,19 +1,75 @@
 # InfraMon
 
-Docker Container Monitoring and Management System
+**Docker Container Monitoring and Management System**
+
+![Dashboard](assets/Dashboard.png)
 
 ## Overview
 
-InfraMon is a comprehensive infrastructure monitoring and management application designed to provide real-time visibility into Docker containerized environments.
+InfraMon is a comprehensive infrastructure monitoring and management application designed to provide real-time visibility into Docker containerized environments. The application enables system administrators and DevOps engineers to monitor, manage, and analyze Docker containers running on host machines through an intuitive, modern web interface.
 
-## Features
+The system bridges the gap between container management and system monitoring, offering a seamless experience for controlling your container infrastructure.
 
-- Real-time container monitoring
-- Container lifecycle management (start, stop, restart)
-- Docker Compose integration
-- System resource monitoring (CPU, Memory, Disk)
-- Modern web interface with dark/light theme
-- OAuth 2.0 authentication
+## Key Features
+
+### 🚀 Real-time Container Monitoring
+Display all Docker containers running on the host machine with their current state, resource utilization, and health status in real-time.
+
+### 🔄 Container Lifecycle Management
+Full control over your containers:
+- **Start/Stop/Restart**: Manage container state directly from the UI.
+- **Kill/Remove**: Forcefully stop or remove containers.
+- **Pause/Unpause**: Temporarily freeze container processes.
+
+### 🐳 Docker Compose Integration
+- Automatically detects `docker-compose.yaml` files.
+- Visualizes compose projects and services.
+- Supports image updates via `docker compose pull`.
+
+### 🔍 Deep Inspection & Shell Access
+- **Comprehensive Inspection**: View full container configuration, network settings, volume mounts, and environment variables.
+- **Web Terminal**: interactive shell access (`/bin/sh` or `/bin/bash`) directly in your browser via WebSocket.
+
+### 📊 Resource Analytics
+- **System Monitoring**: Track host machine resources including CPU, memory, disk usage, and network statistics.
+- **Container Analytics**: Real-time charts for container-level resource consumption (CPU, Memory, Network I/O, Block I/O).
+
+### 📝 Centralized Logging
+- View real-time streaming logs for any container.
+- Search, filter, and download logs.
+- Support for ANSI colors and timestamp toggles.
+
+### 🎨 Modern User Experience
+- Responsive, accessible interface built with React and Tailwind CSS.
+- **Dark/Light Mode**: Fully supported theme switching.
+- **Group Management**: Organize containers into logical groups for easier management.
+
+## Screenshots
+
+### Container Management
+Manage all your containers with advanced filtering and bulk actions.
+![Containers](assets/Containers.png)
+
+### Detailed Inspection
+Deep dive into container configuration and status.
+![Container Info](assets/Container_Info.png)
+
+### Real-time Statistics
+Monitor resource usage with interactive charts.
+![Container Stats](assets/Container_Stats.png)
+
+### Live Logs
+Stream and search container logs in real-time.
+![Container Logs](assets/Container_Logs.png)
+
+## Technical Architecture
+
+The application follows a modern three-tier architecture:
+
+- **Frontend**: React 18+ with TypeScript, Tailwind CSS 4, and React Router.
+- **Backend**: Python FastAPI providing RESTful APIs with async/await support.
+- **Database**: SQLite database managed through Alembic ORM.
+- **Infrastructure**: Fully containerized with Docker and orchestrated via Docker Compose.
 
 ## Quick Start
 
@@ -141,14 +197,6 @@ make test-frontend
 make build
 make up
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linters
-5. Submit a pull request
 
 ## License
 
