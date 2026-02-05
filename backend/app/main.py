@@ -117,7 +117,15 @@ async def lifespan(app: FastAPI):
     await create_admin_user()
     await create_default_groups()
     
+    # Start metrics collection background task
+    from app.services.metrics_collector import metrics_collector
+    await metrics_collector.start()
+    
     yield
+    
+    # Stop metrics collection background task
+    from app.services.metrics_collector import metrics_collector
+    await metrics_collector.stop()
     
     logger.info("Shutting down InfraMon Backend Application...")
     await close_db()

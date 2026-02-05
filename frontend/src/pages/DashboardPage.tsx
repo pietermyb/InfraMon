@@ -93,8 +93,8 @@ export default function DashboardPage() {
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`p-2 rounded-lg transition-colors ${autoRefresh
-                ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
+              ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
               }`}
             title={autoRefresh ? 'Auto-refresh enabled' : 'Auto-refresh disabled'}
           >
@@ -205,76 +205,34 @@ export default function DashboardPage() {
         <ContainerStatsWidgets data={dashboardData} />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-text-title mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
-                             hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/10 
-                             transition-colors group">
-              <ComputerDesktopIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-primary-500" />
-              <span className="block mt-2 text-sm text-text-body group-hover:text-primary-600">
-                View All Containers
-              </span>
-            </button>
-            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
-                             hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 
-                             transition-colors group">
-              <ArrowPathIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-green-500" />
-              <span className="block mt-2 text-sm text-text-body group-hover:text-green-600">
-                Refresh All
-              </span>
-            </button>
-            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
-                             hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 
-                             transition-colors group">
-              <SignalIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-yellow-500" />
-              <span className="block mt-2 text-sm text-text-body group-hover:text-yellow-600">
-                View Logs
-              </span>
-            </button>
-            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
-                             hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 
-                             transition-colors group">
-              <ChartBarIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-blue-500" />
-              <span className="block mt-2 text-sm text-text-body group-hover:text-blue-600">
-                Export Stats
-              </span>
-            </button>
+      <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
+        <h3 className="text-lg font-bold text-text-title mb-4">
+          System Health
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600 dark:text-gray-400">CPU Health</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              Normal
+            </span>
           </div>
-        </div>
-
-        <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-text-title mb-4">
-            System Health
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">CPU Health</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Normal
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Memory Health</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Normal
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Disk Health</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                {systemStats?.disk_usage.toFixed(1)}% Used
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Network Status</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Connected
-              </span>
-            </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Memory Health</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              Normal
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Disk Health</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+              {systemStats?.disk_usage.toFixed(1)}% Used
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Network Status</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              Connected
+            </span>
           </div>
         </div>
       </div>

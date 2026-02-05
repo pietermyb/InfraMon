@@ -57,7 +57,7 @@ export default function ContainerGroups({ containers, selectedGroupName, onSelec
                 <button
                     onClick={() => onSelectGroup(null)}
                     className={clsx(
-                        "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
+                        "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group text-left",
                         selectedGroupName === null
                             ? "bg-canvas-selected text-primary-700 dark:text-primary-400 border-l-4 border-primary-600 shadow-sm"
                             : "text-text-body hover:bg-canvas-hover dark:hover:bg-gray-800/50 hover:text-text-title border-l-4 border-transparent"
@@ -76,7 +76,7 @@ export default function ContainerGroups({ containers, selectedGroupName, onSelec
                         key={group.name}
                         onClick={() => onSelectGroup(group.name)}
                         className={clsx(
-                            "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
+                            "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group text-left",
                             selectedGroupName === group.name
                                 ? "bg-canvas-selected text-primary-700 dark:text-primary-400 border-l-4 border-primary-600 shadow-sm"
                                 : "text-text-body hover:bg-canvas-hover dark:hover:bg-gray-800/50 hover:text-text-title border-l-4 border-transparent"
