@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: inframon-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/opt/InfraMon
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./inframon.db
+      - DEBUG=true
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - inframon-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: inframon-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - inframon-network
+    restart: unless-stopped
+
+networks:
+  inframon-network:
+    driver: bridge

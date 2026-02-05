@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      target: development
+    container_name: inframon-backend-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/opt/InfraMon
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DEBUG=true
+      - DATABASE_URL=sqlite+aiosqlite:///./inframon.db
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: inframon-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    command: npm run dev -- --host 0.0.0.0
