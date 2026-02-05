@@ -1,14 +1,14 @@
 #!/bin/bash
 # Git pre-push hook - runs automatically before git push
-# Install by: cp scripts/pre-push .git/hooks/pre-push
+# Installed by: cp scripts/pre-push .git/hooks/pre-push
 
-echo "🔍 Running pre-push checks..."
+echo "🔍 Running full pre-push validation..."
 
 # Change to project root
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Run backend lint checks
+# Backend checks
 echo "📦 Checking backend..."
 cd backend
 
@@ -24,16 +24,26 @@ echo "  Running flake8..."
 flake8 --config .flake8 .
 echo "  ✅ flake8 passed"
 
+echo "  Running backend tests..."
+PYTHONPATH=. python -m pytest tests/ -v --tb=short
+echo "  ✅ Backend tests passed"
+
 cd ../frontend
 
+# Frontend checks
 echo "🎨 Checking frontend..."
+
 echo "  Running npm lint..."
 npm run lint
 echo "  ✅ Frontend lint passed"
 
-echo "  Running npm build..."
+echo "  Running frontend build..."
 npm run build
 echo "  ✅ Frontend build passed"
+
+echo "  Running frontend unit tests..."
+npm run test -- --run
+echo "  ✅ Frontend unit tests passed"
 
 echo ""
 echo "✅ All pre-push checks passed! Ready to push..."
