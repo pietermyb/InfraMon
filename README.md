@@ -10,6 +10,59 @@ InfraMon is a comprehensive infrastructure monitoring and management application
 
 The system bridges the gap between container management and system monitoring, offering a seamless experience for controlling your container infrastructure.
 
+## How It Was Built
+
+InfraMon was developed using a modern, test-driven approach with comprehensive testing infrastructure at its core.
+
+### Development Methodology
+
+- **Test-Driven Development (TDD)**: Backend implemented with 30+ pytest tests covering API endpoints, authentication flows, and container operations
+- **Component Testing**: Frontend built with Vitest and React Testing Library, featuring 32 passing tests for hooks, components, and page rendering
+- **Mock-Based Testing**: Comprehensive mock implementations for Docker SDK, database operations, and API responses
+- **CI-Ready Test Suite**: Test configuration ready for continuous integration with coverage reporting
+
+### Development with AI
+
+Built using AI-assisted development tools following a structured plan-based approach:
+- **AntiGravity & Opencode**: AI coding agents for multi-step implementation tasks
+- **MinMax M2.1 Free**: Primary language model for code generation and refactoring
+- **Plan-Based Context**: All implementations follow the documented plan in docs/1_InfraMon_Plan.md with position tracking, ensuring consistent context throughout the development process
+- **Context Preservation**: New AI agent sessions initiated after each key plan milestone, maintaining optimal context window usage while preserving implementation continuity
+
+### Technology Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | React 18 + TypeScript | UI components and state management |
+| **Styling** | Tailwind CSS 4 | Responsive, accessible design system |
+| **Frontend Testing** | Vitest + React Testing Library | Unit and integration tests |
+| **Backend** | Python 3.11 + FastAPI | RESTful API with async support |
+| **Database** | SQLite + Alembic | ORM-managed data persistence |
+| **Backend Testing** | pytest + pytest-asyncio | Unit and integration tests |
+| **Container Runtime** | Docker SDK for Python | Container management operations |
+| **Virtualization** | Docker/Podman/Colima | Multi-runtime support |
+
+### Key Development Features
+
+- **Multi-Runtime Support**: Auto-detects Docker, Podman, or Colima sockets for flexible deployment
+- **Hot Reloading**: Frontend with Vite HMR, backend with uvicorn reload
+- **Type Safety**: Full TypeScript coverage on frontend, type hints on backend
+- **Code Quality**: ESLint, Prettier, Black, isort, and mypy configured
+- **Git History Sanitized**: Sensitive data removed from commit history
+
+### Testing Infrastructure
+
+```bash
+# Backend tests (30+ tests, 80% coverage target)
+cd backend && ./venv/bin/pytest tests/ -v
+
+# Frontend tests (32 tests passing)
+cd frontend && npm test
+
+# VSCode Test Explorer
+# Open Testing tab to browse and run tests
+```
+
 ## Key Features
 
 ### 🚀 Real-time Container Monitoring
@@ -83,7 +136,7 @@ The application follows a modern three-tier architecture:
 
 1. Clone the repository:
 ```bash
-git clone https://git.cib-digital.tech/InfraMon.git
+git clone https://github.com/pietermyb/InfraMon.git
 cd InfraMon
 ```
 
