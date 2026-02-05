@@ -1,4 +1,4 @@
-"""Docker integration service."""
+"""Docker/Podman/Colima integration service."""
 
 import docker
 from docker.errors import DockerException, APIError
@@ -29,27 +29,79 @@ logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=10)
 
 
+def _get_socket_path() -> str:
+    """Auto-detect the best available container runtime socket."""
+    runtime = settings.CONTAINER_RUNTIME.lower()
+    
+    if runtime == "docker":
+        return settings.DOCKER_SOCKET_PATH
+    elif runtime == "podman":
+        return settings.PODMAN_SOCKET_PATH
+    elif runtime == "colima":
+        return settings.COLIMA_SOCKET_PATH
+    
+    # Auto-detect: check each socket in order of preference
+    sockets_to_check = [
+        settings.DOCKER_SOCKET_PATH,
+        settings.COLIMA_SOCKET_PATH,
+        settings.PODMAN_SOCKET_PATH,
+    ]
+    
+    for socket_path in sockets_to_check:
+        if os.path.exists(socket_path):
+            logger.info(f"Auto-detected container runtime socket: {socket_path}")
+            return socket_path
+    
+    # Fallback to Docker default
+    logger.warning(f"No container runtime socket found, defaulting to Docker")
+    return settings.DOCKER_SOCKET_PATH
+
+
+def _get_runtime_name() -> str:
+    """Get the name of the detected/configured runtime."""
+    socket_path = _get_socket_path()
+    
+    if "podman" in socket_path:
+        return "Podman"
+    elif "colima" in socket_path:
+        return "Colima"
+    else:
+        return "Docker"
+
+
 class DockerService:
     def __init__(self, db: AsyncSession, user_id: Optional[int] = None):
         self.db = db
         self._client = None
         self._user_id = user_id
         self._timeout = settings.DOCKER_TIMEOUT if hasattr(settings, 'DOCKER_TIMEOUT') else 30
+        self._runtime_name = None
     
     @property
     def client(self):
         if self._client is None:
             try:
+                socket_path = _get_socket_path()
+                self._runtime_name = _get_runtime_name()
+                
                 self._client = docker.DockerClient(
-                    base_url=f"unix://{settings.DOCKER_SOCKET_PATH}",
+                    base_url=f"unix://{socket_path}",
                     version=settings.DOCKER_API_VERSION,
                     timeout=self._timeout,
                 )
                 self._client.ping()
+                logger.info(f"Successfully connected to {self._runtime_name} daemon")
             except DockerException as e:
-                logger.error(f"Failed to connect to Docker daemon: {e}")
+                logger.error(f"Failed to connect to container runtime: {e}")
                 raise
         return self._client
+    
+    @property
+    def runtime_name(self) -> str:
+        """Return the name of the container runtime being used."""
+        if self._runtime_name is None:
+            self._runtime_name = _get_runtime_name()
+        return self._runtime_name
     
     def _run_in_executor(self, func, *args, **kwargs):
         loop = asyncio.get_event_loop()
