@@ -51,7 +51,7 @@ export default function Layout() {
   const currentPageName = location.pathname.split('/').pop() || 'Dashboard'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans">
+    <div className="min-h-screen bg-canvas-base font-sans text-text-body transition-colors duration-300">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-b-lg focus:left-1/2 focus:-translate-x-1/2"
@@ -60,13 +60,13 @@ export default function Layout() {
       </a>
 
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col" role="navigation" aria-label="Sidebar Navigation">
-        <div className="flex flex-col flex-grow bg-white dark:bg-gray-900 border-r border-gray-200/50 dark:border-gray-800/50">
-          <div className="flex items-center h-16 px-6 border-b border-gray-100 dark:border-gray-800">
+        <div className="flex flex-col flex-grow bg-canvas-sidebar border-r border-border-subtle shadow-sm">
+          <div className="flex items-center h-16 px-6 border-b border-border-subtle">
             <CubeIcon className="h-8 w-8 text-primary-600" aria-hidden="true" />
             <span className="ml-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">InfraMon</span>
           </div>
 
-          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href ||
                 (item.href !== '/dashboard' && location.pathname.startsWith(item.href))
@@ -74,43 +74,43 @@ export default function Layout() {
                 <NavLink
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  className={`flex items-center px-3 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
+                    ? 'bg-primary-50 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                 >
-                  <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} />
+                  <item.icon className={`h-5 w-5 mr-3 transition-colors ${isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500'}`} />
                   {item.name}
                 </NavLink>
               )
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="flex items-center gap-3 mb-4 p-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm">
               <UserCircleIcon className="h-10 w-10 text-gray-400" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate uppercase tracking-tight">
                   {user?.username}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate font-mono">
                   {user?.email}
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-1">
               <ThemeToggle />
               <button
                 onClick={() => setShowLogoutModal(true)}
-                className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="p-2.5 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Logout"
               >
                 <ArrowLeftOnRectangleIcon className="h-5 w-5" />
               </button>
             </div>
             {sessionTimeRemaining > 0 && sessionTimeRemaining < 300 && (
-              <div className="mt-3 text-xs text-orange-500">
-                Session expires in {formatSessionTime(sessionTimeRemaining)}
+              <div className="mt-3 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-[10px] font-bold text-orange-600 dark:text-orange-400 text-center animate-pulse">
+                SESSION EXPIRES IN {formatSessionTime(sessionTimeRemaining)}
               </div>
             )}
           </div>

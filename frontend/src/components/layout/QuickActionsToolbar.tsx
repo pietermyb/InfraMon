@@ -1,5 +1,6 @@
 import { clsx } from 'clsx'
 import { Button } from '../ui'
+import { ThemeToggle } from '../common/ThemeToggle'
 import {
   ArrowPathIcon,
   CogIcon,
@@ -57,7 +58,9 @@ export function QuickActionsToolbar({
           <CogIcon className="h-4 w-4" />
         </Button>
       )}
-      <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2" />
+      <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
+      <ThemeToggle />
+      <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
       <Button variant="ghost" size="sm">
         <QuestionMarkCircleIcon className="h-4 w-4" />
       </Button>

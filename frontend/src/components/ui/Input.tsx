@@ -31,11 +31,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         id={id}
                         ref={ref}
                         className={clsx(
-                            'block w-full rounded-xl transition-all duration-200 sm:text-sm',
-                            'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
-                            'text-gray-900 dark:text-white placeholder:text-gray-400',
+                            'block w-full rounded-xl transition-all duration-200 sm:text-sm shadow-sm',
+                            'bg-canvas-card border border-border-subtle',
+                            'text-text-title placeholder:text-gray-400',
                             'focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800',
-                            error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'hover:border-gray-300 dark:hover:border-gray-600',
+                            error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'hover:border-border-medium',
                             leftIcon && 'pl-10',
                             rightIcon && 'pr-10',
                             className

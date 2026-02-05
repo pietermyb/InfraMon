@@ -72,8 +72,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-text-title">Dashboard</h1>
+          <p className="text-sm text-text-body mt-1">
             Real-time system and container monitoring
           </p>
         </div>
@@ -81,8 +81,8 @@ export default function DashboardPage() {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            className="block w-32 rounded-md border-gray-300 dark:border-gray-600 
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white 
+            className="block w-32 rounded-md border-border-subtle 
+                       bg-canvas-card text-text-title 
                        shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
           >
             <option value="1h">Last hour</option>
@@ -92,11 +92,10 @@ export default function DashboardPage() {
           </select>
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={`p-2 rounded-lg transition-colors ${
-              autoRefresh
+            className={`p-2 rounded-lg transition-colors ${autoRefresh
                 ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
-            }`}
+              }`}
             title={autoRefresh ? 'Auto-refresh enabled' : 'Auto-refresh disabled'}
           >
             <ArrowPathIcon className={`h-5 w-5 ${autoRefresh ? 'animate-spin-slow' : ''}`} />
@@ -173,24 +172,24 @@ export default function DashboardPage() {
               height={250}
             />
           </div>
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-text-title mb-4">
               System Uptime
             </h3>
             <UptimeDisplay uptime={systemStats.uptime} size="lg" variant="badge" />
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-6 pt-6 border-t border-border-subtle">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-text-title">
                     {systemStats.cpu_cores}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">CPU Cores</div>
+                  <div className="text-sm text-text-body">CPU Cores</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-text-title">
                     {(systemStats.memory_total / 1e9).toFixed(1)} GB
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Total Memory</div>
+                  <div className="text-sm text-text-body">Total Memory</div>
                 </div>
               </div>
             </div>
@@ -207,48 +206,48 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-text-title mb-4">
             Quick Actions
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <button className="p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
-                             hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 
+            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
+                             hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/10 
                              transition-colors group">
               <ComputerDesktopIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-primary-500" />
-              <span className="block mt-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-primary-600">
+              <span className="block mt-2 text-sm text-text-body group-hover:text-primary-600">
                 View All Containers
               </span>
             </button>
-            <button className="p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
-                             hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 
+            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
+                             hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 
                              transition-colors group">
               <ArrowPathIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-green-500" />
-              <span className="block mt-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-green-600">
+              <span className="block mt-2 text-sm text-text-body group-hover:text-green-600">
                 Refresh All
               </span>
             </button>
-            <button className="p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
-                             hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 
+            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
+                             hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 
                              transition-colors group">
               <SignalIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-yellow-500" />
-              <span className="block mt-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-yellow-600">
+              <span className="block mt-2 text-sm text-text-body group-hover:text-yellow-600">
                 View Logs
               </span>
             </button>
-            <button className="p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 
-                             hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 
+            <button className="p-4 rounded-xl border-2 border-dashed border-border-subtle 
+                             hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 
                              transition-colors group">
               <ChartBarIcon className="h-8 w-8 mx-auto text-gray-400 group-hover:text-blue-500" />
-              <span className="block mt-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-blue-600">
+              <span className="block mt-2 text-sm text-text-body group-hover:text-blue-600">
                 Export Stats
               </span>
             </button>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <div className="bg-canvas-card border border-border-subtle shadow-sm rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-text-title mb-4">
             System Health
           </h3>
           <div className="space-y-4">

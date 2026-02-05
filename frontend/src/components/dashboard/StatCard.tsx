@@ -24,11 +24,11 @@ export function StatCard({
   className
 }: StatCardProps) {
   const colors = {
-    default: 'bg-white dark:bg-gray-800',
-    primary: 'bg-white dark:bg-gray-800 border-l-4 border-primary-500',
-    success: 'bg-white dark:bg-gray-800 border-l-4 border-green-500',
-    warning: 'bg-white dark:bg-gray-800 border-l-4 border-yellow-500',
-    danger: 'bg-white dark:bg-gray-800 border-l-4 border-red-500',
+    default: 'bg-canvas-card border-border-subtle',
+    primary: 'bg-canvas-card border-l-4 border-primary-500',
+    success: 'bg-canvas-card border-l-4 border-green-500',
+    warning: 'bg-canvas-card border-l-4 border-yellow-500',
+    danger: 'bg-canvas-card border-l-4 border-red-500',
   }
 
   const iconColors = {
@@ -70,16 +70,16 @@ export function StatCard({
       {trend && (
         <div className={clsx(
           'px-5 py-3 border-t border-gray-200 dark:border-gray-700',
-          trend.value > 0 ? 'bg-green-50 dark:bg-green-900/20' : 
-          trend.value < 0 ? 'bg-red-50 dark:bg-red-900/20' : 
-          'bg-gray-50 dark:bg-gray-700/50'
+          trend.value > 0 ? 'bg-green-50 dark:bg-green-900/20' :
+            trend.value < 0 ? 'bg-red-50 dark:bg-red-900/20' :
+              'bg-gray-50 dark:bg-gray-700/50'
         )}>
           <div className="flex items-center text-sm">
             <span className={clsx(
               'font-medium',
-              trend.value > 0 ? 'text-green-600 dark:text-green-400' : 
-              trend.value < 0 ? 'text-red-600 dark:text-red-400' : 
-              'text-gray-600 dark:text-gray-400'
+              trend.value > 0 ? 'text-green-600 dark:text-green-400' :
+                trend.value < 0 ? 'text-red-600 dark:text-red-400' :
+                  'text-gray-600 dark:text-gray-400'
             )}>
               {trend.value > 0 ? '+' : ''}{trend.value}%
             </span>

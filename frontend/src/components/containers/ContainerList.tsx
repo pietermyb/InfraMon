@@ -130,8 +130,8 @@ export default function ContainerList({
 
     return (
         <div className="space-y-4">
-            <Card padding="none" className="overflow-visible">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4">
+            <Card padding="none" className="overflow-visible border-border-subtle shadow-premium">
+                <div className="p-4 border-b border-border-subtle flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center space-x-4 flex-1 min-w-[300px]">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -174,8 +174,8 @@ export default function ContainerList({
                 </div>
 
                 <div className="overflow-x-auto scrollbar-thin">
-                    <table className="min-w-[1000px] w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed">
-                        <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <table className="min-w-[1000px] w-full divide-y divide-border-subtle lg:table-fixed">
+                        <thead className="bg-gray-50/80 dark:bg-gray-900/50">
                             <tr>
                                 <th scope="col" className="w-14 px-6 py-3 text-left whitespace-nowrap">
                                     <input
@@ -224,15 +224,15 @@ export default function ContainerList({
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody className="bg-canvas-card divide-y divide-border-subtle">
                             {filteredAndSortedContainers.map((container) => (
                                 <tr
                                     key={container.container_id}
                                     className={clsx(
-                                        'transition-all duration-150',
+                                        'transition-all duration-150 border-l-4',
                                         selectedIds.has(container.container_id)
-                                            ? 'bg-primary-50 dark:bg-primary-900/40'
-                                            : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                            ? 'bg-canvas-selected border-primary-500 shadow-sm'
+                                            : 'hover:bg-canvas-hover border-transparent'
                                     )}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
 import { Button, Input } from '../components/ui'
+import { ThemeToggle } from '../components/common/ThemeToggle'
 import { EyeIcon, EyeSlashIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 
 const loginSchema = z.object({
@@ -57,7 +58,7 @@ export default function LoginPage() {
           </div>
           <h2 className="text-4xl font-bold mb-4">Welcome Back</h2>
           <p className="text-lg text-primary-100 mb-8 max-w-md">
-            Monitor and manage your Docker containers with real-time statistics, 
+            Monitor and manage your Docker containers with real-time statistics,
             interactive shell access, and comprehensive monitoring tools.
           </p>
           <div className="space-y-4">
@@ -99,6 +100,10 @@ export default function LoginPage() {
               <ShieldCheckIcon className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">InfraMon</h1>
+          </div>
+
+          <div className="absolute top-8 right-8">
+            <ThemeToggle />
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">

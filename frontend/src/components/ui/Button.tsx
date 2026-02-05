@@ -25,8 +25,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         const variants = {
             primary: 'bg-primary-600 text-white hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/20 focus:ring-primary-500 border border-primary-600',
-            secondary: 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 focus:ring-gray-400',
-            outline: 'bg-transparent text-primary-600 border border-primary-200 hover:bg-primary-50 hover:border-primary-300 dark:text-primary-400 dark:border-primary-800 dark:hover:bg-primary-900/20 dark:hover:border-primary-700 focus:ring-primary-500',
+            secondary: 'bg-canvas-card text-text-body hover:bg-gray-50 dark:hover:bg-gray-800 border border-border-medium hover:border-gray-400 dark:hover:border-gray-500 focus:ring-gray-400',
+            outline: 'bg-transparent text-primary-600 border border-primary-300 hover:bg-primary-50 hover:border-primary-400 dark:text-primary-400 dark:border-primary-800 dark:hover:bg-primary-900/20 dark:hover:border-primary-700 focus:ring-primary-500',
             danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 focus:ring-red-500 border border-red-600',
             ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 focus:ring-gray-400',
             link: 'bg-transparent text-primary-600 hover:text-primary-500 underline-offset-4 hover:underline p-0 h-auto focus:ring-0',

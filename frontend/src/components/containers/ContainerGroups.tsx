@@ -59,8 +59,8 @@ export default function ContainerGroups({ containers, selectedGroupName, onSelec
                     className={clsx(
                         "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
                         selectedGroupName === null
-                            ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 border-l-4 border-primary-600"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200 border-l-4 border-transparent"
+                            ? "bg-canvas-selected text-primary-700 dark:text-primary-400 border-l-4 border-primary-600 shadow-sm"
+                            : "text-text-body hover:bg-canvas-hover dark:hover:bg-gray-800/50 hover:text-text-title border-l-4 border-transparent"
                     )}
                 >
                     <div className="flex items-center">
@@ -78,8 +78,8 @@ export default function ContainerGroups({ containers, selectedGroupName, onSelec
                         className={clsx(
                             "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all group",
                             selectedGroupName === group.name
-                                ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400 border-l-4 border-primary-600"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/50 dark:hover:text-gray-200 border-l-4 border-transparent"
+                                ? "bg-canvas-selected text-primary-700 dark:text-primary-400 border-l-4 border-primary-600 shadow-sm"
+                                : "text-text-body hover:bg-canvas-hover dark:hover:bg-gray-800/50 hover:text-text-title border-l-4 border-transparent"
                         )}
                     >
                         <div className="flex items-center">
