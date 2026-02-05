@@ -6,19 +6,19 @@
 
 ## Overview
 
-InfraMon is a comprehensive infrastructure monitoring and management application designed to provide real-time visibility into Docker containerized environments. The application enables system administrators and DevOps engineers to monitor, manage, and analyze Docker containers running on host machines through an intuitive, modern web interface.
+InfraMon is a web-based tool for monitoring and managing Docker containers. It provides a modern interface for viewing container status, performing basic operations, and accessing container logs.
 
 The system bridges the gap between container management and system monitoring, offering a seamless experience for controlling your container infrastructure.
 
 ## How It Was Built
 
-InfraMon was developed using a modern, test-driven approach with comprehensive testing infrastructure at its core.
+InfraMon was developed following a structured plan-based approach with comprehensive testing infrastructure integrated during the final phases of development.
 
 ### Development Methodology
 
-- **Test-Driven Development (TDD)**: Backend implemented with 30+ pytest tests covering API endpoints, authentication flows, and container operations
-- **Component Testing**: Frontend built with Vitest and React Testing Library, featuring 32 passing tests for hooks, components, and page rendering
-- **Mock-Based Testing**: Comprehensive mock implementations for Docker SDK, database operations, and API responses
+- **Plan-Based Development**: Implementation followed a detailed 12-phase plan with clear milestones and deliverables
+- **Testing Integration**: Comprehensive test suite added during Phase 11 (Integration and Testing), covering backend API endpoints with pytest and frontend components with Vitest
+- **Mock-Based Testing**: Mock implementations for Docker SDK, database operations, and API responses for isolated testing
 - **CI-Ready Test Suite**: Test configuration ready for continuous integration with coverage reporting
 
 ### Development with AI
