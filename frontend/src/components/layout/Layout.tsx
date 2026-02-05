@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ThemeToggle } from '../common/ThemeToggle'
 import { useTheme } from '../../hooks/useTheme'
 import { Button, Modal } from '../../components/ui'
 import { Breadcrumbs } from './Breadcrumbs'
@@ -10,8 +11,6 @@ import {
   CubeIcon,
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
-  SunIcon,
-  MoonIcon,
   Bars3Icon,
   XMarkIcon,
   UserCircleIcon,
@@ -52,12 +51,19 @@ export default function Layout() {
   const currentPageName = location.pathname.split('/').pop() || 'Dashboard'
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
-        <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200 dark:border-gray-700">
-            <CubeIcon className="h-8 w-8 text-primary-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">InfraMon</span>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 font-sans">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-b-lg focus:left-1/2 focus:-translate-x-1/2"
+      >
+        Skip to main content
+      </a>
+
+      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col" role="navigation" aria-label="Sidebar Navigation">
+        <div className="flex flex-col flex-grow bg-white dark:bg-gray-900 border-r border-gray-200/50 dark:border-gray-800/50">
+          <div className="flex items-center h-16 px-6 border-b border-gray-100 dark:border-gray-800">
+            <CubeIcon className="h-8 w-8 text-primary-600" aria-hidden="true" />
+            <span className="ml-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400">InfraMon</span>
           </div>
 
           <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
@@ -69,8 +75,8 @@ export default function Layout() {
                   key={item.name}
                   to={item.href}
                   className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
-                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
                 >
                   <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} />
@@ -93,12 +99,7 @@ export default function Layout() {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {theme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
-              </button>
+              <ThemeToggle />
               <button
                 onClick={() => setShowLogoutModal(true)}
                 className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -192,8 +193,8 @@ export default function Layout() {
                       to={item.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${isActive
-                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50'
+                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50'
                         }`}
                     >
                       <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-600' : 'text-gray-400'}`} />
@@ -206,7 +207,7 @@ export default function Layout() {
           </div>
         )}
 
-        <main className="py-6 px-4 sm:px-6 lg:px-8">
+        <main id="main-content" role="main" className="py-6 px-4 sm:px-6 lg:px-8 focus:outline-none" tabIndex={-1}>
           <div className="mb-6 hidden sm:block">
             <Breadcrumbs />
           </div>
