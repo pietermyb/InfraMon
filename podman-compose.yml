@@ -1,0 +1,49 @@
+# Podman Compose configuration for InfraMon
+# Use: podman-compose up -d
+
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: inframon-backend
+    ports:
+      - "8065:8000"
+    volumes:
+      - ./backend:/opt/InfraMon
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/hostfs:ro
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./inframon.db
+      - DEBUG=true
+      - LOG_LEVEL=WARNING
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - HOST_FS_ROOT=/hostfs
+      - CONTAINER_RUNTIME=auto
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - inframon-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: inframon-frontend
+    depends_on:
+      - backend
+    networks:
+      - inframon-network
+    restart: unless-stopped
+
+networks:
+  inframon-network:
+    driver: bridge

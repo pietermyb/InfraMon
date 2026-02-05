@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     
     DOCKER_SOCKET_PATH: str = "/var/run/docker.sock"
     DOCKER_API_VERSION: str = "1.45"
+    PODMAN_SOCKET_PATH: str = "/run/user/0/podman/podman.sock"
+    COLIMA_SOCKET_PATH: str = "/run/colima/socket/docker.sock"
+    CONTAINER_RUNTIME: str = "auto"  # Options: "auto", "docker", "podman", "colima"
     
     LOG_LEVEL: str = "INFO"
     
