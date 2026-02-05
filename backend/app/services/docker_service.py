@@ -150,9 +150,26 @@ class DockerService:
         return None
     
     async def inspect_container(self, container_id: str) -> Optional[ContainerDetailResponse]:
+        # First try to get container directly
         success, container, error = await self._safe_docker_call(
             self.client.containers.get, container_id
         )
+        
+        # If not found with short ID, try to find full ID from list
+        if not success or not container:
+            try:
+                # List all containers to find matching short_id
+                list_success, containers, list_error = await self._safe_docker_call(
+                    self.client.containers.list, all=True
+                )
+                if list_success and containers:
+                    for c in containers:
+                        if c.id.startswith(container_id) or c.short_id == container_id:
+                            container = c
+                            success = True
+                            break
+            except Exception as e:
+                logger.warning(f"Error finding container by short_id: {e}")
         
         if not success or not container:
             return None
@@ -173,6 +190,13 @@ class DockerService:
             image_tags = container.image.tags if hasattr(container.image, 'tags') and container.image.tags else []
             image_name = image_tags[0] if image_tags else attrs.get("Config", {}).get("Image", "unknown")
             
+            # Ensure command is a list
+            cmd = config.get("Cmd")
+            if cmd is None:
+                cmd = []
+            elif isinstance(cmd, str):
+                cmd = [cmd]
+            
             response = {
                 "id": 0,
                 "container_id": container.id,
@@ -183,38 +207,39 @@ class DockerService:
                 "docker_compose_path": None,
                 "created_at": attrs.get("Created", ""),
                 "updated_at": "",
+                "created": attrs.get("Created", ""),
                 "ports": container.ports if hasattr(container, 'ports') else {},
                 "volumes": [],
                 "environment": environment,
                 "networks": network_names,
-                "labels": config.get("Labels", {}),
-                "command": config.get("Cmd"),
+                "labels": config.get("Labels") or {},
+                "command": cmd,
                 "started_at": state.get("StartedAt"),
                 "finished_at": state.get("FinishedAt"),
-                "restart_policy": host_config.get("RestartPolicy"),
+                "restart_policy": host_config.get("RestartPolicy") or {},
                 "healthcheck": config.get("Healthcheck"),
                 "hostname": network_settings.get("Hostname", ""),
                 "ip_address": network_settings.get("IPAddress", ""),
                 "gateway": network_settings.get("Gateway", ""),
                 "mac_address": network_settings.get("MacAddress", ""),
-                "memory_limit": host_config.get("Memory", 0),
-                "memory_swap": host_config.get("MemorySwap", 0),
-                "cpu_shares": host_config.get("CpuShares", 0),
-                "cpu_period": host_config.get("CpuPeriod", 0),
-                "cpu_quota": host_config.get("CpuQuota", 0),
-                "blkio_weight": host_config.get("BlkioWeight", 0),
-                "blkio_device_read_bps": host_config.get("BlkioDeviceReadBps", []),
-                "blkio_device_write_bps": host_config.get("BlkioDeviceWriteBps", []),
-                " mounts": attrs.get("Mounts", []),
+                "memory_limit": host_config.get("Memory") or 0,
+                "memory_swap": host_config.get("MemorySwap") or 0,
+                "cpu_shares": host_config.get("CpuShares") or 0,
+                "cpu_period": host_config.get("CpuPeriod") or 0,
+                "cpu_quota": host_config.get("CpuQuota") or 0,
+                "blkio_weight": host_config.get("BlkioWeight") or 0,
+                "blkio_device_read_bps": host_config.get("BlkioDeviceReadBps") or [],
+                "blkio_device_write_bps": host_config.get("BlkioDeviceWriteBps") or [],
+                "mounts": attrs.get("Mounts") or [],
                 "working_dir": config.get("WorkingDir", ""),
-                "entrypoint": config.get("Entrypoint", []),
+                "entrypoint": config.get("Entrypoint") or [],
                 "user": config.get("User", ""),
                 "tty": config.get("Tty", False),
                 "open_stdin": config.get("OpenStdin", False),
-                "restart_count": state.get("RestartCount", 0),
+                "restart_count": state.get("RestartCount") or 0,
                 "OOMKilled": state.get("OOMKilled", False),
                 "dead": state.get("Dead", False),
-                "exit_code": state.get("ExitCode", 0),
+                "exit_code": state.get("ExitCode") or 0,
             }
             
             return ContainerDetailResponse(**response)

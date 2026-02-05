@@ -12,6 +12,7 @@ from app.db.database import get_db
 from app.core.auth import get_current_user
 from app.models.user import User
 from app.schemas.user import UserResponse, UserLogin
+from app.schemas.response import DataResponse
 from app.schemas.container import (
     ContainerResponse, ContainerDetailResponse, ContainerLogsResponse,
     ContainerActionRequest, ContainerActionResponse, ContainerListResponse,
@@ -114,7 +115,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
 
 
-@api_router.get("/containers", response_model=ContainerListResponse, tags=["Containers"])
+@api_router.get("/containers", response_model=DataResponse, tags=["Containers"])
 async def list_containers(
     all_containers: bool = Query(False, description="Include stopped containers"),
     group_id: Optional[int] = Query(None, description="Filter by group"),
@@ -123,15 +124,18 @@ async def list_containers(
 ):
     """List all containers."""
     docker_service = DockerService(db)
-    containers = await docker_service.list_containers(all_containers)
+    containers = await docker_service.list_all_containers(all_containers)
     
     running = sum(1 for c in containers if c.get("status") == "running")
     
-    return ContainerListResponse(
-        containers=containers,
-        total=len(containers),
-        running=running,
-        stopped=len(containers) - running,
+    return DataResponse(
+        success=True,
+        data={
+            "containers": containers,
+            "total": len(containers),
+            "running": running,
+            "stopped": len(containers) - running,
+        }
     )
 
 

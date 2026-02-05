@@ -1,8 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
+import api from '../api/client'
 
 interface ContainerDetail {
   container_id: string
@@ -27,7 +25,7 @@ export default function ContainerDetailPage() {
   const { data: container, isLoading, error } = useQuery<ContainerDetail>({
     queryKey: ['container', id],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/containers/${id}`)
+      const response = await api.get(`/containers/${id}`)
       return response.data
     },
   })

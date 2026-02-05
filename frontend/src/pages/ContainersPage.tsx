@@ -1,19 +1,27 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
+import api from '../api/client'
 
 interface Container {
-  id: number
-  container_id: string
+  id: string
+  short_id: string
   name: string
   image: string
   status: string
-  group_id: number | null
-  created_at: string
-  updated_at: string
+  compose_file: string | null
+  labels: Record<string, string>
+  ports: Record<string, any>
+}
+
+interface ContainerListResponse {
+  success: boolean
+  data: {
+    containers: Container[]
+    total: number
+    running: number
+    stopped: number
+  }
 }
 
 export default function ContainersPage() {
@@ -23,17 +31,17 @@ export default function ContainersPage() {
   const { data: containers, isLoading } = useQuery<Container[]>({
     queryKey: ['containers', showAll],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/containers`, {
+      const response = await api.get<ContainerListResponse>('/containers', {
         params: { all_containers: showAll },
       })
-      return response.data
+      return response.data.data.containers
     },
     refetchInterval: 10000,
   })
 
   const startMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.post(`${API_URL}/containers/${id}/start`)
+      await api.post(`/containers/${id}/start`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['containers'] })
@@ -42,7 +50,7 @@ export default function ContainersPage() {
 
   const stopMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.post(`${API_URL}/containers/${id}/stop`)
+      await api.post(`/containers/${id}/stop`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['containers'] })
@@ -51,7 +59,7 @@ export default function ContainersPage() {
 
   const restartMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.post(`${API_URL}/containers/${id}/restart`)
+      await api.post(`/containers/${id}/restart`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['containers'] })
@@ -107,34 +115,34 @@ export default function ContainersPage() {
                       {container.name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {container.container_id.slice(0, 12)}
+                      {container.short_id}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Link
-                    to={`/containers/${container.container_id}`}
+                    to={`/containers/${container.short_id}`}
                     className="px-3 py-1 text-sm text-primary-600 hover:text-primary-500"
                   >
                     Details
                   </Link>
                   {container.status === 'running' ? (
                     <button
-                      onClick={() => stopMutation.mutate(container.container_id)}
+                      onClick={() => stopMutation.mutate(container.short_id)}
                       className="px-3 py-1 text-sm text-red-600 hover:text-red-500"
                     >
                       Stop
                     </button>
                   ) : (
                     <button
-                      onClick={() => startMutation.mutate(container.container_id)}
+                      onClick={() => startMutation.mutate(container.short_id)}
                       className="px-3 py-1 text-sm text-green-600 hover:text-green-500"
                     >
                       Start
                     </button>
                   )}
                   <button
-                    onClick={() => restartMutation.mutate(container.container_id)}
+                    onClick={() => restartMutation.mutate(container.short_id)}
                     className="px-3 py-1 text-sm text-yellow-600 hover:text-yellow-500"
                   >
                     Restart

@@ -126,8 +126,8 @@ class ContainerResponse(BaseModel):
     status: str
     group_id: Optional[int] = None
     docker_compose_path: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
     
     class Config:
         from_attributes = True

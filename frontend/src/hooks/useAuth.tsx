@@ -1,6 +1,7 @@
 import { useState, useCallback, createContext, useContext, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import api from '../api/client'
 import { User } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
@@ -77,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
-    delete axios.defaults.headers.common['Authorization']
     
     clearSessionTimers()
     setUser(null)
@@ -91,13 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/auth/refresh`, {
+      const response = await api.post('/auth/refresh', {
         refresh_token: refreshTokenValue
       })
       
       const { access_token } = response.data
       localStorage.setItem('token', access_token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
       
       setupSessionTimers(access_token)
     } catch {
@@ -125,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true)
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { username, password })
+      const response = await api.post('/auth/login', { username, password })
       const { access_token, refresh_token, user: userData } = response.data
       
       localStorage.setItem('token', access_token)
@@ -133,12 +132,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('user', JSON.stringify(userData))
       
       setUser(userData)
-      setupAxiosInterceptors(access_token)
       setupSessionTimers(access_token)
     } finally {
       setIsLoading(false)
     }
-  }, [setupAxiosInterceptors, setupSessionTimers])
+  }, [setupSessionTimers])
 
   const logout = useCallback(() => {
     performLogout()
@@ -159,7 +157,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token && user) {
-      setupAxiosInterceptors(token)
       setupSessionTimers(token)
     }
 
@@ -177,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('scroll', handleActivity)
       clearSessionTimers()
     }
-  }, [user, setupAxiosInterceptors, setupSessionTimers, clearSessionTimers])
+  }, [user, setupSessionTimers, clearSessionTimers])
 
   useEffect(() => {
     const checkSession = () => {
