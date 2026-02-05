@@ -1,86 +1,219 @@
-import { Outlet, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useTheme } from '../../hooks/useTheme'
+import { Button, Modal } from '../../components/ui'
+import {
+  HomeIcon,
+  CubeIcon,
+  Cog6ToothIcon,
+  ArrowLeftOnRectangleIcon,
+  SunIcon,
+  MoonIcon,
+  Bars3Icon,
+  XMarkIcon,
+  BellIcon,
+  UserCircleIcon,
+} from '@heroicons/react/24/outline'
+
+const navigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Containers', href: '/containers', icon: CubeIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+]
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout, sessionTimeRemaining } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  const formatSessionTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleLogout = () => {
+    logout()
+    setShowLogoutModal(false)
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-primary-600 dark:text-primary-400">
-                  InfraMon
-                </h1>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+        <div className="flex flex-col flex-grow bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+          <div className="flex items-center h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+            <CubeIcon className="h-8 w-8 text-primary-600" />
+            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">InfraMon</span>
+          </div>
+          
+          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href !== '/dashboard' && location.pathname.startsWith(item.href))
+              return (
                 <NavLink
-                  to="/dashboard"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-primary-500 text-gray-900 dark:text-white'
-                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white'
-                    }`
-                  }
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
                 >
-                  Dashboard
+                  <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} />
+                  {item.name}
                 </NavLink>
-                <NavLink
-                  to="/containers"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-primary-500 text-gray-900 dark:text-white'
-                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white'
-                    }`
-                  }
-                >
-                  Containers
-                </NavLink>
-                <NavLink
-                  to="/settings"
-                  className={({ isActive }) =>
-                    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                      isActive
-                        ? 'border-primary-500 text-gray-900 dark:text-white'
-                        : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-white'
-                    }`
-                  }
-                >
-                  Settings
-                </NavLink>
+              )
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-4">
+              <UserCircleIcon className="h-10 w-10 text-gray-400" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {user?.username}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {user?.email}
+                </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-between">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                {theme === 'light' ? '🌙' : '☀️'}
+                {theme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
               </button>
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  {user?.username}
-                </span>
-                <button
-                  onClick={logout}
-                  className="text-sm text-red-600 hover:text-red-500"
-                >
-                  Logout
-                </button>
+              <button
+                onClick={() => setShowLogoutModal(true)}
+                className="p-2 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                title="Logout"
+              >
+                <ArrowLeftOnRectangleIcon className="h-5 w-5" />
+              </button>
+            </div>
+            {sessionTimeRemaining > 0 && sessionTimeRemaining < 300 && (
+              <div className="mt-3 text-xs text-orange-500">
+                Session expires in {formatSessionTime(sessionTimeRemaining)}
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="md:pl-64">
+        <div className="sticky top-0 z-40 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            className="px-4 text-gray-500 md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          </button>
+          
+          <div className="flex-1 flex items-center justify-end px-4 space-x-4">
+            <button className="relative p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
+              <BellIcon className="h-6 w-6" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            </button>
+            
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <UserCircleIcon className="h-8 w-8 text-gray-400" />
+              </button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.username}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      setShowLogoutModal(true)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </nav>
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-gray-900/50" onClick={() => setMobileMenuOpen(false)}>
+            <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2">
+                  <CubeIcon className="h-8 w-8 text-primary-600" />
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">InfraMon</span>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)}>
+                  <XMarkIcon className="h-6 w-6 text-gray-500" />
+                </button>
+              </div>
+              <nav className="p-4 space-y-1">
+                {navigation.map((item) => {
+                  const isActive = location.pathname === item.href
+                  return (
+                    <NavLink
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg ${
+                        isActive
+                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <item.icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-600' : 'text-gray-400'}`} />
+                      {item.name}
+                    </NavLink>
+                  )
+                })}
+              </nav>
+            </div>
+          </div>
+        )}
+
+        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <Outlet />
+        </main>
+      </div>
+
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        title="Sign out"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            Are you sure you want to sign out of your account?
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setShowLogoutModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleLogout}>
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

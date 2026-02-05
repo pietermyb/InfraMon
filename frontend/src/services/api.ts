@@ -1,11 +1,14 @@
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, CancelTokenSource } from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
 class ApiClient {
   private client: AxiosInstance
+  private cancelTokens: Map<string, CancelTokenSource>
 
   constructor() {
+    this.cancelTokens = new Map()
+    
     this.client = axios.create({
       baseURL: API_URL,
       headers: {
@@ -20,6 +23,8 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
         }
+        
+        config.withCredentials = true
         return config
       },
       (error) => Promise.reject(error)
@@ -30,21 +35,75 @@ class ApiClient {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           localStorage.removeItem('token')
+          localStorage.removeItem('refresh_token')
           localStorage.removeItem('user')
-          window.location.href = '/login'
+          
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login'
+          }
         }
+        
+        const message = this.getErrorMessage(error)
+        error.message = message
+        
         return Promise.reject(error)
       }
     )
   }
 
-  async get<T>(url: string, params?: Record<string, unknown>): Promise<T> {
-    const response = await this.client.get<T>(url, { params })
+  private getErrorMessage(error: AxiosError): string {
+    if (error.response?.data && typeof error.response.data === 'object' && 'detail' in error.response.data) {
+      return String(error.response.data.detail)
+    }
+    if (error.response?.status === 401) {
+      return 'Authentication required. Please log in again.'
+    }
+    if (error.response?.status === 403) {
+      return 'You do not have permission to perform this action.'
+    }
+    if (error.response?.status === 404) {
+      return 'The requested resource was not found.'
+    }
+    if (error.response?.status === 422) {
+      return 'Validation error. Please check your input.'
+    }
+    if (error.response?.status === 429) {
+      return 'Too many requests. Please try again later.'
+    }
+    if (error.code === 'ECONNABORTED') {
+      return 'Request timed out. Please try again.'
+    }
+    if (!window.navigator.onLine) {
+      return 'You are offline. Please check your internet connection.'
+    }
+    return error.message || 'An unexpected error occurred.'
+  }
+
+  generateCancelToken(requestId: string): CancelTokenSource {
+    this.cancelTokens.get(requestId)?.cancel('Request cancelled by user')
+    const source = axios.CancelToken.source()
+    this.cancelTokens.set(requestId, source)
+    return source
+  }
+
+  removeCancelToken(requestId: string): void {
+    this.cancelTokens.delete(requestId)
+  }
+
+  cancelAllRequests(reason?: string): void {
+    this.cancelTokens.forEach((source) => source.cancel(reason || 'All requests cancelled'))
+    this.cancelTokens.clear()
+  }
+
+  async get<T>(url: string, params?: Record<string, unknown>, requestId?: string): Promise<T> {
+    const config = requestId ? { params, cancelToken: this.generateCancelToken(requestId).token } : { params }
+    const response = await this.client.get<T>(url, config)
     return response.data
   }
 
-  async post<T>(url: string, data?: unknown): Promise<T> {
-    const response = await this.client.post<T>(url, data)
+  async post<T>(url: string, data?: unknown, requestId?: string): Promise<T> {
+    const config = requestId ? { cancelToken: this.generateCancelToken(requestId).token } : {}
+    const response = await this.client.post<T>(url, data, config)
     return response.data
   }
 
@@ -61,6 +120,33 @@ class ApiClient {
   async delete<T>(url: string): Promise<T> {
     const response = await this.client.delete<T>(url)
     return response.data
+  }
+
+  async getWithRetry<T>(
+    url: string,
+    params?: Record<string, unknown>,
+    retries = 3,
+    delay = 1000
+  ): Promise<T> {
+    let lastError: Error | null = null
+    
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await this.get<T>(url, params)
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        
+        if (axios.isCancel(error)) {
+          throw error
+        }
+        
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)))
+        }
+      }
+    }
+    
+    throw lastError
   }
 }
 
