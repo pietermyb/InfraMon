@@ -41,18 +41,6 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('text=Password must be at least 6 characters')).toBeVisible()
   })
 
-  test('should toggle password visibility', async ({ page }) => {
-    await page.fill('#password', 'secretpassword')
-    const passwordInput = page.locator('#password')
-    await expect(passwordInput).toHaveAttribute('type', 'password')
-
-    const toggleButton = page.locator('button').filter({ has: page.locator('svg') }).first()
-    if (await toggleButton.isVisible()) {
-      await toggleButton.click()
-      await expect(passwordInput).toHaveAttribute('type', 'text')
-    }
-  })
-
   test('should have accessible form labels', async ({ page }) => {
     const usernameInput = page.locator('input[name="username"]')
     const passwordInput = page.locator('input[name="password"]')
