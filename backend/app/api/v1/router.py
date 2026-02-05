@@ -904,7 +904,6 @@ async def websocket_shell(
     exec_id: str,
 ):
     """WebSocket endpoint for interactive shell access."""
-    await websocket.accept()
     
     session_key = f"{container_id}:{exec_id}"
     await manager.connect(websocket, session_key)

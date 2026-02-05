@@ -809,18 +809,19 @@ class DockerService:
             return {"error": error}
         
         try:
-            exec_config = docker.types.ExecConfig(
+            exec_id_resp = await self._run_in_executor(
+                self.client.api.exec_create, 
+                container.id, 
                 cmd=cmd,
-                stdin_open=interactive,
+                stdin=interactive,
                 tty=tty,
                 workdir=workdir,
-                user=user,
+                user=user
             )
-            
-            exec_id = await self._run_in_executor(container.client.api.exec_create, container.id, exec_config)
-            
+
+            # exec_id_resp is a dictionary like {'Id': '...'}
             return {
-                "exec_id": exec_id.get("Id"),
+                "exec_id": exec_id_resp.get("Id"),
                 "container_id": container_id,
                 "cmd": cmd,
             }

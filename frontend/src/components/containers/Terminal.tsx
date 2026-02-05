@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Terminal as XTerm } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
-import { Button, Card, Spinner } from '../ui'
-import { Maximize2, Minimize2, Power, RefreshCw, Terminal as TerminalIcon } from 'lucide-react'
+import { Button } from '../ui'
+import { Maximize2, Minimize2, Power, Terminal as TerminalIcon } from 'lucide-react'
 import { clsx } from 'clsx'
+import api from '../../api/client'
+import { ShellInitResponse } from '../../types'
 
 interface TerminalProps {
     containerId: string
@@ -19,43 +21,73 @@ export default function Terminal({ containerId }: TerminalProps) {
     const [isConnecting, setIsConnecting] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
 
-    const connect = () => {
+    const connect = async () => {
         if (isConnecting || isConnected) return
 
         setIsConnecting(true)
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-        const host = window.location.host === 'localhost:5173' ? 'localhost:8000' : window.location.host
-        const wsUrl = `${protocol}//${host}/api/v1/containers/${containerId}/shell`
+        xtermRef.current?.writeln('\x1b[33mInitializing shell session...\x1b[0m')
 
-        const socket = new WebSocket(wsUrl)
-        socketRef.current = socket
+        try {
+            // 1. Initialize shell session via API
+            const response = await api.post<ShellInitResponse>(`/containers/${containerId}/shell`)
 
-        socket.onopen = () => {
-            setIsConnected(true)
+            if (!response.data.success || !response.data.exec_id) {
+                throw new Error(response.data.error || 'Failed to initialize shell')
+            }
+
+            const execId = response.data.exec_id
+
+            // 2. Connect to WebSocket using the exec_id
+            let wsUrl: string
+            const apiUrl = import.meta.env.VITE_API_URL
+
+            if (apiUrl && apiUrl.startsWith('http')) {
+                const baseUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl
+                wsUrl = baseUrl.replace(/^http/, 'ws') + `/containers/${containerId}/shell/${execId}`
+            } else {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+                const host = window.location.host === 'localhost:5173' ? 'localhost:8000' : window.location.host
+                wsUrl = `${protocol}//${host}/api/v1/containers/${containerId}/shell/${execId}`
+            }
+
+            const socket = new WebSocket(wsUrl)
+            socketRef.current = socket
+
+            socket.onopen = () => {
+                setIsConnected(true)
+                setIsConnecting(false)
+                xtermRef.current?.focus()
+                xtermRef.current?.writeln('\x1b[1;32mconnected to container shell\x1b[0m')
+                fitAddonRef.current?.fit()
+            }
+
+            socket.onmessage = (event) => {
+                xtermRef.current?.write(event.data)
+            }
+
+            socket.onclose = () => {
+                setIsConnected(false)
+                setIsConnecting(false)
+                xtermRef.current?.writeln('\x1b[1;31mdisconnected from container shell\x1b[0m')
+            }
+
+            socket.onerror = () => {
+                setIsConnecting(false)
+                xtermRef.current?.writeln('\x1b[1;31mconnection error\x1b[0m')
+            }
+        } catch (error: any) {
             setIsConnecting(false)
-            xtermRef.current?.focus()
-            xtermRef.current?.writeln('\x1b[1;32mconnected to container shell\x1b[0m')
-        }
-
-        socket.onmessage = (event) => {
-            xtermRef.current?.write(event.data)
-        }
-
-        socket.onclose = () => {
-            setIsConnected(false)
-            setIsConnecting(false)
-            xtermRef.current?.writeln('\x1b[1;31mdisconnected from container shell\x1b[0m')
-        }
-
-        socket.onerror = () => {
-            setIsConnecting(false)
-            xtermRef.current?.writeln('\x1b[1;31mconnection error\x1b[0m')
+            xtermRef.current?.writeln(`\x1b[1;31mFailed to connect: ${error.message || 'Unknown error'}\x1b[0m`)
         }
     }
 
     const disconnect = () => {
-        socketRef.current?.close()
+        if (socketRef.current) {
+            socketRef.current.close()
+            socketRef.current = null
+        }
         setIsConnected(false)
+        setIsConnecting(false)
     }
 
     useEffect(() => {
