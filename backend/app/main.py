@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.db.database import init_db, close_db
 from app.api.v1.router import api_router
 
-LOG_LEVEL = logging.DEBUG if settings.DEBUG else logging.INFO
+LOG_LEVEL = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
 logging.basicConfig(
     level=LOG_LEVEL,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

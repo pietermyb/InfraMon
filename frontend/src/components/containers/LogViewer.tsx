@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Terminal, Download, Trash2, Pause, Play, ChevronDown, Clock, Search } from 'lucide-react'
-import { Button, Card, Spinner, Input } from '../ui'
+import { Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
+import 'xterm/css/xterm.css'
+import { Download, Trash2, Pause, Play, Clock, Search } from 'lucide-react'
+import { Button, Spinner } from '../ui'
 import { ContainerLogsResponse } from '../../types'
 import api from '../../api/client'
 import { clsx } from 'clsx'
@@ -10,14 +13,40 @@ interface LogViewerProps {
 }
 
 export default function LogViewer({ containerId }: LogViewerProps) {
-    const [logs, setLogs] = useState<string>('')
     const [isLoading, setIsLoading] = useState(true)
     const [isPaused, setIsPaused] = useState(false)
     const [showTimestamps, setShowTimestamps] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [tail, setTail] = useState('100')
-    const logEndRef = useRef<HTMLDivElement>(null)
     const pollingInterval = useRef<NodeJS.Timeout | null>(null)
+
+    // XTerm refs
+    const terminalRef = useRef<HTMLDivElement>(null)
+    const xtermRef = useRef<Terminal | null>(null)
+    const fitAddonRef = useRef<FitAddon | null>(null)
+
+    // Store latest logs in ref to allow filtering without re-fetching
+    const rawLogsRef = useRef<string>('')
+
+    const updateTerminal = (content: string) => {
+        if (!xtermRef.current) return
+
+        let output = content
+
+        // Client-side filtering
+        if (searchTerm) {
+            const lines = content.split('\n')
+            output = lines
+                .filter(line => line.toLowerCase().includes(searchTerm.toLowerCase()))
+                .join('\n')
+        }
+
+        // Convert LF to CRLF for xterm
+        output = output.replace(/\n/g, '\r\n')
+
+        xtermRef.current.reset()
+        xtermRef.current.write(output)
+    }
 
     const fetchLogs = async () => {
         try {
@@ -27,36 +56,104 @@ export default function LogViewer({ containerId }: LogViewerProps) {
                     timestamps: showTimestamps,
                 },
             })
-            setLogs(response.data.logs)
+            rawLogsRef.current = response.data.logs
+            updateTerminal(rawLogsRef.current)
         } catch (error) {
             console.error('Failed to fetch logs:', error)
+            xtermRef.current?.writeln('\x1b[31mFailed to fetch logs\x1b[0m')
         } finally {
             setIsLoading(false)
         }
     }
 
+    // Initialize xterm
     useEffect(() => {
-        fetchLogs()
+        if (!terminalRef.current) return
 
-        if (!isPaused) {
+        const xterm = new Terminal({
+            cursorBlink: false,
+            fontSize: 13,
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+            theme: {
+                background: '#0a0a0a',
+                foreground: '#d4d4d4',
+                cursor: '#f8f8f2',
+                selectionBackground: '#44475a',
+            },
+            disableStdin: true, // Read-only
+            convertEol: true,
+        })
+
+        const fitAddon = new FitAddon()
+        xterm.loadAddon(fitAddon)
+
+        xtermRef.current = xterm
+        fitAddonRef.current = fitAddon
+
+        let isOpened = false
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (!terminalRef.current) return
+
+            for (const entry of entries) {
+                if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                    if (!isOpened) {
+                        try {
+                            xterm.open(terminalRef.current)
+                            isOpened = true
+                            requestAnimationFrame(() => {
+                                try {
+                                    fitAddon.fit()
+                                    // Initial fetch after terminal is ready
+                                    fetchLogs()
+                                } catch (e) {
+                                    console.warn('Initial fit failed', e)
+                                }
+                            })
+                        } catch (e) {
+                            console.error('Failed to open terminal', e)
+                        }
+                    } else {
+                        try {
+                            fitAddon.fit()
+                        } catch (e) { }
+                    }
+                }
+            }
+        })
+
+        resizeObserver.observe(terminalRef.current)
+
+        return () => {
+            resizeObserver.disconnect()
+            try {
+                xterm.dispose()
+            } catch (e) { }
+            xtermRef.current = null
+            fitAddonRef.current = null
+        }
+    }, [])
+
+    // Poll logs
+    useEffect(() => {
+        if (!isPaused && !isLoading) {
             pollingInterval.current = setInterval(fetchLogs, 3000)
         }
-
         return () => {
             if (pollingInterval.current) {
                 clearInterval(pollingInterval.current)
             }
         }
-    }, [containerId, isPaused, tail, showTimestamps])
+    }, [containerId, isPaused, tail, showTimestamps, searchTerm, isLoading]) // Re-create interval when dependencies change
 
+    // Handle search term change immediately
     useEffect(() => {
-        if (!isPaused) {
-            logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (xtermRef.current && rawLogsRef.current) {
+            updateTerminal(rawLogsRef.current)
         }
-    }, [logs])
+    }, [searchTerm])
 
     const handleDownload = () => {
-        const blob = new Blob([logs], { type: 'text/plain' })
+        const blob = new Blob([rawLogsRef.current], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -65,17 +162,8 @@ export default function LogViewer({ containerId }: LogViewerProps) {
     }
 
     const handleClear = () => {
-        setLogs('')
-    }
-
-    const highlightSearch = (text: string) => {
-        if (!searchTerm) return text
-        const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'))
-        return parts.map((part, i) =>
-            part.toLowerCase() === searchTerm.toLowerCase()
-                ? <mark key={i} className="bg-yellow-500/50 text-white rounded px-0.5">{part}</mark>
-                : part
-        )
+        rawLogsRef.current = ''
+        if (xtermRef.current) xtermRef.current.reset()
     }
 
     return (
@@ -114,7 +202,7 @@ export default function LogViewer({ containerId }: LogViewerProps) {
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Filter logs..."
+                            placeholder="Filter logs (client-side)..."
                             className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:text-gray-200"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -142,26 +230,17 @@ export default function LogViewer({ containerId }: LogViewerProps) {
                 </div>
             </div>
 
-            <div className="flex-1 min-h-0 bg-gray-950 rounded-lg overflow-hidden border border-gray-800 flex flex-col relative group">
+            <div className="flex-1 min-h-0 bg-[#0a0a0a] rounded-lg overflow-hidden border border-gray-800 flex flex-col relative group">
                 {isLoading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-950/50 z-10">
                         <Spinner size="lg" />
                     </div>
                 )}
 
-                <div className="flex-1 overflow-auto p-4 font-mono text-sm leading-relaxed scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
-                    <pre className="text-gray-300 whitespace-pre-wrap break-all">
-                        {logs ? (
-                            highlightSearch(logs)
-                        ) : (
-                            <span className="text-gray-600 italic">No logs available for this container.</span>
-                        )}
-                    </pre>
-                    <div ref={logEndRef} />
-                </div>
+                <div ref={terminalRef} className="flex-1 overflow-hidden p-2" />
 
                 {!isPaused && (
-                    <div className="absolute bottom-4 right-6 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-4 right-6 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-20">
                         <div className="bg-primary-600 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center space-x-1 animate-pulse">
                             <span className="h-1.5 w-1.5 bg-white rounded-full" />
                             <span>LIVE UPDATING</span>
@@ -172,3 +251,4 @@ export default function LogViewer({ containerId }: LogViewerProps) {
         </div>
     )
 }
+
