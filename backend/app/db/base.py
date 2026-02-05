@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Any
+
 from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.orm import declared_attr
+
 
 class BaseModel:
     """Base model class with common fields."""
@@ -16,9 +18,4 @@ class BaseModel:
 
     @declared_attr
     def updated_at(cls):
-        return Column(
-            DateTime,
-            default=datetime.utcnow,
-            onupdate=datetime.utcnow,
-            nullable=False
-        )
+        return Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

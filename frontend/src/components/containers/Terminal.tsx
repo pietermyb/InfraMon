@@ -181,7 +181,9 @@ export default function Terminal({ containerId }: TerminalProps) {
                 try {
                     fitAddonRef.current?.fit()
                     xtermRef.current?.focus()
-                } catch (e) { }
+                } catch (e) {
+                    // Silent catch for optional terminal operations
+                }
             }, 100)
         }
     }, [isFullscreen])

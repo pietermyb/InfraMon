@@ -17,8 +17,7 @@ async def test_health_check(client: AsyncClient):
 async def test_login_invalid_username(client: AsyncClient):
     """Test login with invalid username returns 401."""
     response = await client.post(
-        "/api/v1/auth/login",
-        json={"username": "nonexistent", "password": "testpassword"}
+        "/api/v1/auth/login", json={"username": "nonexistent", "password": "testpassword"}
     )
     assert response.status_code == 401
 
@@ -33,10 +32,7 @@ async def test_get_me_unauthenticated(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_get_me_invalid_token(client: AsyncClient):
     """Test get_me with invalid token returns 401."""
-    response = await client.get(
-        "/api/v1/auth/me",
-        headers={"Authorization": "Bearer invalidtoken"}
-    )
+    response = await client.get("/api/v1/auth/me", headers={"Authorization": "Bearer invalidtoken"})
     assert response.status_code == 401
 
 
@@ -45,10 +41,7 @@ async def test_change_password_unauthenticated(client: AsyncClient):
     """Test change password without auth returns 401."""
     response = await client.post(
         "/api/v1/auth/change-password",
-        json={
-            "current_password": "testpassword",
-            "new_password": "newpassword123"
-        }
+        json={"current_password": "testpassword", "new_password": "newpassword123"},
     )
     assert response.status_code == 401
 

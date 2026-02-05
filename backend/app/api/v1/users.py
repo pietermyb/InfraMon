@@ -1,21 +1,22 @@
 """User management API endpoints."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
-from app.core.auth import get_current_user, get_current_active_superuser
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import get_current_active_superuser, get_current_user
 from app.db.database import get_db
 from app.models.user import User
+from app.schemas.response import ErrorResponse, create_paginated_response
 from app.schemas.user import (
     UserCreate,
-    UserUpdate,
-    UserResponse,
     UserListResponse,
     UserPasswordUpdate,
+    UserResponse,
+    UserUpdate,
 )
-from app.schemas.response import ErrorResponse, create_paginated_response
 
 router = APIRouter(prefix="/users", tags=["Users Management"])
 
@@ -36,22 +37,22 @@ async def list_users(
 ):
     """List all users with pagination and filtering."""
     skip = (page - 1) * page_size
-    
+
     query = select(User)
-    
+
     if is_active is not None:
         query = query.where(User.is_active == is_active)
     if is_superuser is not None:
         query = query.where(User.is_superuser == is_superuser)
-    
+
     count_query = select(func.count()).select_from(query.subquery())
     result = await db.execute(count_query)
     total = result.scalar() or 0
-    
+
     query = query.offset(skip).limit(page_size).order_by(User.created_at.desc())
     result = await db.execute(query)
     users = list(result.scalars().all())
-    
+
     return UserListResponse(
         users=[UserResponse.model_validate(u) for u in users],
         total=total,
@@ -75,21 +76,21 @@ async def get_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific user's information."""
-    if current_user.id != user_id and not getattr(current_user, 'is_superuser', False):
+    if current_user.id != user_id and not getattr(current_user, "is_superuser", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this user",
         )
-    
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -109,36 +110,33 @@ async def create_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new user."""
-    result = await db.execute(
-        select(User).where(User.username == user_data.username)
-    )
+    result = await db.execute(select(User).where(User.username == user_data.username))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered",
         )
-    
-    result = await db.execute(
-        select(User).where(User.email == user_data.email)
-    )
+
+    result = await db.execute(select(User).where(User.email == user_data.email))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
-    
+
     from app.core.auth import get_password_hash
+
     user = User(
         username=user_data.username,
         email=user_data.email,
         hashed_password=get_password_hash(user_data.password),
         is_superuser=user_data.is_superuser,
     )
-    
+
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -158,28 +156,28 @@ async def update_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Update a user's information."""
-    if current_user.id != user_id and not getattr(current_user, 'is_superuser', False):
+    if current_user.id != user_id and not getattr(current_user, "is_superuser", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this user",
         )
-    
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     update_data = user_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(user, field, value)
-    
+
     await db.commit()
     await db.refresh(user)
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -200,19 +198,19 @@ async def delete_user(
     """Delete a user."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     if user.id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete your own account",
         )
-    
+
     await db.delete(user)
     await db.commit()
 
@@ -231,17 +229,17 @@ async def deactivate_user(
     """Deactivate a user account."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     user.is_active = False
     await db.commit()
     await db.refresh(user)
-    
+
     return UserResponse.model_validate(user)
 
 
@@ -259,15 +257,15 @@ async def activate_user(
     """Activate a user account."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     user.is_active = True
     await db.commit()
     await db.refresh(user)
-    
+
     return UserResponse.model_validate(user)

@@ -1,11 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
-from app.db.database import Base
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Float, Integer, String
+
+from app.db.database import Base
 
 
 class SystemStats(Base):
     __tablename__ = "system_stats"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     cpu_usage = Column(Float, default=0.0)
     memory_usage = Column(Float, default=0.0)

@@ -1,11 +1,14 @@
 """Test factories for creating test data."""
+
 from datetime import datetime
 from typing import Any
 
 
 class UserFactory:
     @staticmethod
-    def create(username="testuser", email="test@example.com", is_active=True, is_superuser=False, **kwargs):
+    def create(
+        username="testuser", email="test@example.com", is_active=True, is_superuser=False, **kwargs
+    ):
         return {
             "username": username,
             "email": email,
@@ -14,13 +17,15 @@ class UserFactory:
             "is_superuser": is_superuser,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
-            **kwargs
+            **kwargs,
         }
 
 
 class ContainerFactory:
     @staticmethod
-    def create(id="abc123", name="test-container", image="nginx:latest", status="running", **kwargs):
+    def create(
+        id="abc123", name="test-container", image="nginx:latest", status="running", **kwargs
+    ):
         return {
             "id": id,
             "short_id": id[:12],
@@ -35,7 +40,7 @@ class ContainerFactory:
             "cmd": [],
             "volumes": [],
             "network_settings": {},
-            **kwargs
+            **kwargs,
         }
 
 
@@ -49,7 +54,7 @@ class ContainerGroupFactory:
             "color": color,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
-            **kwargs
+            **kwargs,
         }
 
 
@@ -71,5 +76,5 @@ class SystemStatsFactory:
             "load_average": [1.0, 1.5, 2.0],
             "boot_time": 1672531200,
             "timestamp": datetime.utcnow().isoformat(),
-            **kwargs
+            **kwargs,
         }

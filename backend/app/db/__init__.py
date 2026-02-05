@@ -1,8 +1,8 @@
 """Repository factory and module exports."""
 
+from app.db.container_repository import ContainerRepository, get_container_repository
 from app.db.repository import Repository
 from app.db.user_repository import UserRepository, get_user_repository
-from app.db.container_repository import ContainerRepository, get_container_repository
 
 __all__ = [
     "Repository",

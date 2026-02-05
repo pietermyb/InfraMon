@@ -1,9 +1,11 @@
 """User repository."""
 
 from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
 from passlib.context import CryptContext
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.repository import Repository
 from app.models.user import User
 
@@ -30,11 +32,7 @@ class UserRepository(Repository[User]):
         return await self.filter(is_superuser=True)
 
     async def create_user(
-        self,
-        username: str,
-        email: str,
-        password: str,
-        is_superuser: bool = False
+        self, username: str, email: str, password: str, is_superuser: bool = False
     ) -> User:
         """Create a new user with hashed password."""
         hashed_password = pwd_context.hash(password)

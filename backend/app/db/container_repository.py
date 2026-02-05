@@ -1,8 +1,10 @@
 """Container repository."""
 
-from typing import Optional, List
+from typing import List, Optional
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+
 from app.db.repository import Repository
 from app.models.container import Container
 

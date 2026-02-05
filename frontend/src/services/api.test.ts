@@ -373,13 +373,11 @@ describe('Backend-Frontend Integration: Group Service', () => {
     const response = await groupService.create({
       name: 'Test Group',
       description: 'A test group',
-      container_ids: [],
     })
 
     expect(api.post).toHaveBeenCalledWith('/groups', {
       name: 'Test Group',
       description: 'A test group',
-      container_ids: [],
     })
     expect(response).toHaveProperty('id', 1)
     expect(response).toHaveProperty('name', 'Test Group')

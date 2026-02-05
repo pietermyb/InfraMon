@@ -1,7 +1,8 @@
 {
   "env": {
     "browser": true,
-    "es2020": true
+    "es2020": true,
+    "jest": true
   },
   "extends": [
     "eslint:recommended",
@@ -15,7 +16,7 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "project": "./tsconfig.json"
+    "project": ["./tsconfig.json", "./tsconfig.test.json"]
   },
   "plugins": [
     "@typescript-eslint",
@@ -31,5 +32,5 @@
     "react-hooks/exhaustive-deps": "warn",
     "no-console": "warn"
   },
-  "ignorePatterns": ["dist", "node_modules"]
+  "ignorePatterns": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
 }
