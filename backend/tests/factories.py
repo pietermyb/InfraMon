@@ -1,7 +1,6 @@
 """Test factories for creating test data."""
 
 from datetime import datetime
-from typing import Any
 
 
 class UserFactory:
