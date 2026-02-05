@@ -51,6 +51,9 @@ class MetricsCollector:
                     logger.debug("Collecting container stats...")
                     containers = await docker_service.list_all_containers(all_containers=False)
                     for container in containers:
+                        # Sync container with DB to ensure it exists for stats association
+                        await docker_service.sync_container(container)
+                        
                         container_id = container.get("container_id")
                         if container_id:
                             await stats_service.collect_and_store_container_stats(container_id)

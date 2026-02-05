@@ -4,6 +4,7 @@ import docker
 from docker.errors import DockerException, APIError
 import asyncio
 import os
+from datetime import datetime
 import logging
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -106,6 +107,42 @@ class DockerService:
         
         return result
     
+    async def sync_container(self, container_info: dict) -> Container:
+        """Synchronize container info with database."""
+        try:
+            result = await self.db.execute(
+                select(Container).where(Container.container_id == container_info["container_id"])
+            )
+            db_container = result.scalar_one_or_none()
+            
+            if db_container:
+                # Update existing
+                db_container.name = container_info["name"]
+                db_container.image = container_info["image"]
+                db_container.status = container_info["status"]
+                db_container.docker_compose_path = container_info.get("compose_file")
+                db_container.updated_at = datetime.utcnow()
+            else:
+                # Create new
+                db_container = Container(
+                    container_id=container_info["container_id"],
+                    name=container_info["name"],
+                    image=container_info["image"],
+                    status=container_info["status"],
+                    docker_compose_path=container_info.get("compose_file"),
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+                self.db.add(db_container)
+            
+            await self.db.commit()
+            await self.db.refresh(db_container)
+            return db_container
+            
+        except Exception as e:
+            logger.error(f"Error syncing container {container_info.get('name')}: {e}")
+            return None
+
     def _resolve_host_path(self, path_str: str) -> Path:
         """Resolve a host path to a local path, potentially attempting a hostfs mount."""
         path = Path(path_str)

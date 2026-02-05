@@ -76,35 +76,81 @@ export default function Terminal({ containerId }: TerminalProps) {
 
         const fitAddon = new FitAddon()
         xterm.loadAddon(fitAddon)
-        xterm.open(terminalRef.current)
-        fitAddon.fit()
 
+        xtermRef.current = xterm
+        fitAddonRef.current = fitAddon
+
+        // Data handler
         xterm.onData((data) => {
             if (socketRef.current?.readyState === WebSocket.OPEN) {
                 socketRef.current.send(data)
             }
         })
 
-        xtermRef.current = xterm
-        fitAddonRef.current = fitAddon
+        let isOpened = false;
 
-        const handleResize = () => {
-            fitAddon.fit()
-        }
-        window.addEventListener('resize', handleResize)
+        // Use ResizeObserver to safely open and fit the terminal
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (!terminalRef.current) return;
+
+            for (const entry of entries) {
+                if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                    // Only open if not yet opened and we have dimensions
+                    if (!isOpened) {
+                        try {
+                            xterm.open(terminalRef.current)
+                            isOpened = true;
+                            // Small delay after open before fit to ensure DOM is ready
+                            requestAnimationFrame(() => {
+                                try {
+                                    fitAddon.fit()
+                                } catch (e) {
+                                    console.warn('Initial fit failed', e)
+                                }
+                            })
+                        } catch (e) {
+                            console.error('Failed to open terminal', e)
+                        }
+                    } else {
+                        // Already opened, just fit
+                        try {
+                            fitAddon.fit()
+                        } catch (e) {
+                            // Silent catch
+                        }
+                    }
+                }
+            }
+        })
+
+        resizeObserver.observe(terminalRef.current)
 
         return () => {
-            window.removeEventListener('resize', handleResize)
-            xterm.dispose()
+            resizeObserver.disconnect()
+
+            // Dispose logic
+            try {
+                xterm.dispose()
+            } catch (e) {
+                // Ignore dispose errors
+            }
+
             socketRef.current?.close()
+            xtermRef.current = null
+            fitAddonRef.current = null
+            isOpened = false
         }
     }, [])
 
     useEffect(() => {
-        if (isFullscreen) {
-            setTimeout(() => fitAddonRef.current?.fit(), 100)
-        } else {
-            setTimeout(() => fitAddonRef.current?.fit(), 100)
+        // Trigger a fit when switching to/from fullscreen
+        if (fitAddonRef.current && terminalRef.current && xtermRef.current) {
+            setTimeout(() => {
+                try {
+                    fitAddonRef.current?.fit()
+                    xtermRef.current?.focus()
+                } catch (e) { }
+            }, 100)
         }
     }, [isFullscreen])
 
