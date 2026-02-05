@@ -106,11 +106,51 @@ class DockerService:
         
         return result
     
+    def _resolve_host_path(self, path_str: str) -> Path:
+        """Resolve a host path to a local path, potentially attempting a hostfs mount."""
+        path = Path(path_str)
+        if path.exists():
+            return path
+            
+        if settings.HOST_FS_ROOT:
+            # Try prepending the host fs root
+            # Handle absolute paths properly (strip leading /)
+            clean_path = path_str.lstrip('/')
+            host_path = Path(settings.HOST_FS_ROOT) / clean_path
+            if host_path.exists():
+                return host_path
+                
+        return path
+
     async def find_compose_file(self, container) -> Optional[str]:
         try:
             container_attrs = container.attrs
-            mounts = container_attrs.get("Mounts", [])
             
+            # 1. Check Labels (Most common for containers started via Docker Compose)
+            labels = container_attrs.get("Config", {}).get("Labels", {})
+            
+            # Prioritize 'com.docker.compose.project.config_files' as it points to exactly what we want
+            config_files = labels.get("com.docker.compose.project.config_files")
+            if config_files:
+                # Can be a comma-separated list of absolute paths
+                for config_path in config_files.split(','):
+                    config_path = config_path.strip()
+                    if config_path:
+                        # Attempt to resolve potentially host-path to local container path
+                        resolved_path = self._resolve_host_path(config_path)
+                        if resolved_path.exists() and resolved_path.is_file():
+                            return str(resolved_path)
+                            
+            # Try working directory as a secondary source if we have a project name
+            if labels.get("com.docker.compose.project"):
+                working_dir = labels.get("com.docker.compose.project.working_dir")
+                if working_dir:
+                    compose_path = await self.search_compose_file(working_dir)
+                    if compose_path:
+                        return compose_path
+
+            # 2. Check Mounts (For containers that might mount their own compose file)
+            mounts = container_attrs.get("Mounts", [])
             for mount in mounts:
                 if mount.get("Type") == "bind":
                     source_path = mount.get("Source")
@@ -119,35 +159,42 @@ class DockerService:
                         if compose_path:
                             return compose_path
             
-            labels = container_attrs.get("Config", {}).get("Labels", {})
-            compose_project = labels.get("com.docker.compose.project")
-            if compose_project:
-                work_dir = labels.get("com.docker.compose.project.config_files")
-                if work_dir:
-                    compose_path = await self.search_compose_file(work_dir)
-                    if compose_path:
-                        return compose_path
-            
             return None
         except Exception as e:
             logger.warning(f"Error finding compose file: {e}")
             return None
-    
+
     async def search_compose_file(self, start_path: str, max_depth: int = 5) -> Optional[str]:
-        start = Path(start_path)
-        if not start.exists():
-            return None
-        
-        for depth in range(max_depth + 1):
-            for pattern in ["docker-compose.yml", "docker-compose.yaml"]:
-                compose_file = start / pattern
-                if compose_file.exists():
-                    return str(compose_file)
+        try:
+            # Resolve the starting path using potential HOST_FS_ROOT
+            start = self._resolve_host_path(start_path)
             
-            if depth < max_depth:
+            if not start.exists():
+                return None
+            
+            # If it's a file and looks like a compose file, we're done
+            if start.is_file():
+                if start.name in ["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"]:
+                    return str(start)
+                # If it's a file but not a compose file, use its parent as search starting point
                 start = start.parent
-        
-        return None
+
+            # Search current directory and climb upwards
+            for depth in range(max_depth + 1):
+                for pattern in ["docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"]:
+                    compose_file = start / pattern
+                    if compose_file.exists() and compose_file.is_file():
+                        return str(compose_file)
+                
+                # Prevent infinite loop at root
+                if depth < max_depth and str(start.parent) != str(start):
+                    start = start.parent
+                else:
+                    break
+            
+            return None
+        except Exception:
+            return None
     
     async def inspect_container(self, container_id: str) -> Optional[ContainerDetailResponse]:
         # First try to get container directly

@@ -279,8 +279,8 @@ async def inspect_container(
     return await docker_service.get_full_inspection(container_id)
 
 
-@api_router.get("/containers/{container_id}/compose", tags=["Containers"])
-async def get_container_compose(
+@api_router.get("/containers/{container_id}/compose/info", tags=["Containers", "Docker Compose"])
+async def get_container_compose_info(
     container_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -288,6 +288,34 @@ async def get_container_compose(
     """Get docker-compose info for container."""
     docker_service = DockerService(db)
     return await docker_service.get_compose_info(container_id)
+
+
+@api_router.get("/containers/{container_id}/compose/file", response_model=DockerComposeFileContent, tags=["Containers", "Docker Compose"])
+async def get_container_compose_file(
+    container_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get docker-compose file content for a container."""
+    docker_service = DockerService(db)
+    # First get the compose info to find the path
+    info = await docker_service.get_compose_info(container_id)
+    if not info.get("compose_file_path"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No compose file found for this container",
+        )
+    
+    # Then get the content
+    success, result = await docker_service.get_compose_file_content(info["compose_file_path"])
+    
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=result,
+        )
+    
+    return result
 
 
 @api_router.post("/containers/{container_id}/compose/pull", response_model=ContainerActionResponse, tags=["Containers"])
@@ -478,7 +506,7 @@ async def get_container_filesystem_usage(
     return await stats_service.get_container_filesystem_usage(container_id)
 
 
-@api_router.get("/stats/containers/{container_id}/history", response_model=ContainerStatsHistoryResponse, tags=["Statistics"])
+@api_router.get("/containers/{container_id}/stats/history", response_model=ContainerStatsHistoryResponse, tags=["Statistics"])
 async def get_container_stats_history(
     container_id: str,
     period: str = Query("1h", pattern="^(1h|6h|24h|7d|30d)$"),

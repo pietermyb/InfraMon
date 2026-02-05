@@ -11,14 +11,16 @@ services:
     volumes:
       - ./backend:/opt/InfraMon
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/hostfs:ro # Mount host filesystem to allow reading compose files
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./inframon.db
       - DEBUG=true
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - HOST_FS_ROOT=/hostfs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

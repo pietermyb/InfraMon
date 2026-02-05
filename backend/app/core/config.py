@@ -27,7 +27,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     ADMIN_USERNAME: str = "admin"
+    ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = ""
+    
+    HOST_FS_ROOT: str = ""
     
     class Config:
         env_file = Path(__file__).parent.parent.parent / ".env"
