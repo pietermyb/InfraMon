@@ -1,8 +1,9 @@
-.PHONY: all backend frontend install dev dev-backend dev-frontend build build-backend build-frontend up down logs clean lint lint-check format test test-backend test-frontend test-e2e pre-commit setup
+.PHONY: all backend frontend install dev dev-backend dev-frontend build build-backend build-frontend up down logs clean lint lint-check format test test-backend test-frontend test-e2e pre-commit setup ci-check pre-push
 
 # Colors
 GREEN = \033[0;32m
 YELLOW = \033[1;33m
+RED = \033[0;31m
 NC = \033[0m
 
 # Default target
@@ -74,8 +75,8 @@ stop: down
 # Code quality targets
 lint:
 	@echo "$(GREEN)Running backend linters...$(NC)"
-	cd backend && black --check --line-length 100 app/ tests/ alembic/ 2>/dev/null || (echo "Install black: pip install black" && exit 1)
-	cd backend && isort --check-only app/ tests/ alembic/ 2>/dev/null || (echo "Install isort: pip install isort" && exit 1)
+	cd backend && black --check --line-length 100 app/ tests/ backend/alembic/ 2>/dev/null || (echo "Install black: pip install black" && exit 1)
+	cd backend && isort --check-only app/ tests/ backend/alembic/ 2>/dev/null || (echo "Install isort: pip install isort" && exit 1)
 	cd backend && flake8 --config .flake8 .
 	@echo "$(GREEN)Running frontend linter...$(NC)"
 	cd frontend && npm run lint
@@ -83,16 +84,16 @@ lint:
 
 lint-check:
 	@echo "$(YELLOW)Running lint checks (without formatting)...$(NC)"
-	@cd backend && black --check --line-length 100 app/ tests/ alembic/ 2>/dev/null || (echo "Install black: pip install black" && exit 1)
-	@cd backend && isort --check-only app/ tests/ alembic/ 2>/dev/null || (echo "Install isort: pip install isort" && exit 1)
+	@cd backend && black --check --line-length 100 app/ tests/ backend/alembic/ 2>/dev/null || (echo "Install black: pip install black" && exit 1)
+	@cd backend && isort --check-only app/ tests/ backend/alembic/ 2>/dev/null || (echo "Install isort: pip install isort" && exit 1)
 	@cd backend && flake8 --config .flake8 .
 	@cd frontend && npm run lint
 	@echo "$(GREEN)All lint checks passed!$(NC)"
 
 format:
 	@echo "$(GREEN)Formatting backend code...$(NC)"
-	cd backend && black --line-length 100 app/ tests/ alembic/
-	cd backend && isort app/ tests/ alembic/
+	cd backend && black --line-length 100 app/ tests/ backend/alembic/
+	cd backend && isort app/ tests/ backend/alembic/
 	@echo "$(GREEN)Backend code formatted!$(NC)"
 
 # Testing targets
@@ -124,6 +125,24 @@ pre-commit:
 
 setup: pre-commit
 	@echo "$(GREEN)Pre-commit hooks installed!$(NC)"
+
+# CI check - run this before pushing!
+ci-check: lint build
+	@echo ""
+	@echo "$(GREEN)✅ All checks passed! Ready to push.$(NC)"
+
+# Pre-push hook - run this automatically before git push
+pre-push:
+	@echo "$(YELLOW)Running pre-push checks...$(NC)"
+	@echo "$(GREEN)Running lint checks...$(NC)"
+	cd backend && black --check --line-length 100 app/ tests/ backend/alembic/ 2>/dev/null || (echo "$(RED)Black failed. Run 'make format' to fix.$(NC)" && exit 1)
+	cd backend && isort --check-only app/ tests/ backend/alembic/ 2>/dev/null || (echo "$(RED)isort failed. Run 'make format' to fix.$(NC)" && exit 1)
+	cd backend && flake8 --config .flake8 . || (echo "$(RED)Flake8 failed.$(NC)" && exit 1)
+	cd frontend && npm run lint || (echo "$(RED)Frontend lint failed.$(NC)" && exit 1)
+	@echo "$(GREEN)Running frontend build...$(NC)"
+	cd frontend && npm run build || (echo "$(RED)Frontend build failed.$(NC)" && exit 1)
+	@echo ""
+	@echo "$(GREEN)✅ All pre-push checks passed! Ready to push.$(NC)"
 
 # Cleanup
 clean:
@@ -162,17 +181,29 @@ db-cleanup-backups:
 
 # Help
 help:
-	@echo "Available targets:"
-	@echo "  all          - Install dependencies and start development (default)"
-	@echo "  install      - Install all dependencies"
-	@echo "  dev          - Start development servers (backend + frontend)"
-	@echo "  dev-backend  - Start backend development server"
-	@echo "  dev-frontend - Start frontend development server"
-	@echo "  build        - Build all containers for production"
-	@echo "  up           - Start containers with Docker Compose"
-	@echo "  down         - Stop containers"
-	@echo "  logs         - Show all container logs"
-	@echo "  clean        - Clean up containers and build artifacts"
-	@echo "  test         - Run all tests"
-	@echo "  lint         - Run code formatters and linters"
-	@echo "  help         - Show this help message"
+	@echo "InfraMon Development Commands"
+	@echo ""
+	@echo "Development:"
+	@echo "  make install      - Install all dependencies"
+	@echo "  make dev          - Start development servers"
+	@echo "  make build        - Build all containers"
+	@echo "  make up           - Start containers with Docker Compose"
+	@echo "  make down         - Stop containers"
+	@echo ""
+	@echo "Before Pushing (IMPORTANT!):"
+	@echo "  make ci-check     - Run all checks (lint + build)"
+	@echo "  make pre-push     - Run pre-push validation"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test         - Run all tests"
+	@echo "  make test-backend - Run backend tests"
+	@echo "  make test-frontend - Run frontend tests"
+	@echo "  make test-e2e     - Run E2E tests"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  make lint         - Run all linters"
+	@echo "  make lint-check   - Check linting (no changes)"
+	@echo "  make format       - Format code automatically"
+	@echo ""
+	@echo "Pre-commit:"
+	@echo "  make setup        - Install pre-commit hooks"

@@ -1,0 +1,39 @@
+#!/bin/bash
+# Git pre-push hook - runs automatically before git push
+# Install by: cp scripts/pre-push .git/hooks/pre-push
+
+echo "🔍 Running pre-push checks..."
+
+# Change to project root
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+# Run backend lint checks
+echo "📦 Checking backend..."
+cd backend
+
+echo "  Running black..."
+black --line-length 100 app/ tests/ alembic/
+echo "  ✅ Black passed"
+
+echo "  Running isort..."
+isort --check-only app/ tests/ alembic/
+echo "  ✅ isort passed"
+
+echo "  Running flake8..."
+flake8 --config .flake8 .
+echo "  ✅ flake8 passed"
+
+cd ../frontend
+
+echo "🎨 Checking frontend..."
+echo "  Running npm lint..."
+npm run lint
+echo "  ✅ Frontend lint passed"
+
+echo "  Running npm build..."
+npm run build
+echo "  ✅ Frontend build passed"
+
+echo ""
+echo "✅ All pre-push checks passed! Ready to push..."
