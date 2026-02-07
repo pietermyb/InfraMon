@@ -1,15 +1,12 @@
 """Statistics service for system and container metrics."""
 
-import asyncio
-import json
 import logging
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import psutil
-from sqlalchemy import and_, asc, desc, func, select
+from sqlalchemy import and_, asc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.container import Container

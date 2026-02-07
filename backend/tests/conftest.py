@@ -7,7 +7,6 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.core.config import settings
 from app.db.database import Base, get_db
 from app.main import app
 
@@ -62,6 +61,7 @@ async def client(test_db) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture
 async def test_user(test_db):
+    """Create a test user."""
     from sqlalchemy import select
 
     from app.core.auth import get_password_hash

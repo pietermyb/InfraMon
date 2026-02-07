@@ -4,26 +4,20 @@ import asyncio
 import json
 import logging
 import os
-import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import docker
-from docker.errors import APIError, DockerException
+from docker.errors import DockerException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.audit_log import AuditLog
 from app.models.container import Container
-from app.models.docker_compose_project import DockerComposeProject
-from app.schemas import (
-    ContainerDetailResponse,
-    DockerComposeProjectResponse,
-)
-from app.services.container_service import ContainerService
+from app.schemas import ContainerDetailResponse
 
 logger = logging.getLogger(__name__)
 
@@ -833,23 +827,6 @@ class DockerService:
             }
         except DockerException as e:
             return {"error": str(e)}
-
-    async def pull_image(self, container_id: str, no_cache: bool = False) -> bool:
-        try:
-            loop = asyncio.get_event_loop()
-            container = await loop.run_in_executor(
-                None, lambda: self.client.containers.get(container_id)
-            )
-            image_name = container.image.tags[0] if container.image.tags else None
-
-            if image_name:
-                await loop.run_in_executor(
-                    None, lambda: self.client.images.pull(image_name, no_cache=no_cache)
-                )
-                return True
-            return False
-        except DockerException:
-            return False
 
     async def list_compose_projects(self) -> list:
         success, containers, error = await self._safe_docker_call(

@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { Card, Badge, Spinner, Button } from '../ui'
-import api from '../../api/client'
+import { Badge, Button } from '../ui'
 import { ContainerResponse } from '../../types'
-import { Folder, FolderPlus, MoreHorizontal, ChevronRight, LayoutGrid, List } from 'lucide-react'
+import { Folder, FolderPlus, ChevronRight } from 'lucide-react'
 import { clsx } from 'clsx'
 
 interface ContainerGroupsProps {

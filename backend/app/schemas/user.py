@@ -1,6 +1,5 @@
 """User schemas for API requests and responses."""
 
-import re
 from datetime import datetime
 from typing import Optional
 

@@ -1,10 +1,7 @@
 """API router with all endpoints."""
 
-import asyncio
-import base64
-import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,46 +10,35 @@ from app.core.auth import get_current_user
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.container import (
-    ContainerActionRequest,
     ContainerActionResponse,
     ContainerBulkActionRequest,
     ContainerBulkActionResponse,
     ContainerDetailResponse,
-    ContainerDiffResponse,
     ContainerExecRequest,
     ContainerExecResponse,
     ContainerGroupCreate,
     ContainerGroupResponse,
     ContainerGroupUpdate,
-    ContainerListResponse,
-    ContainerLogsResponse,
     ContainerPruneResponse,
     ContainerRenameRequest,
     ContainerResizeRequest,
-    ContainerResponse,
     ContainerShellInitResponse,
     ContainerUpdateRequest,
 )
-from app.schemas.docker_compose import (
-    DockerComposeFileContent,
-    DockerComposeValidationResponse,
-)
+from app.schemas.docker_compose import DockerComposeFileContent, DockerComposeValidationResponse
 from app.schemas.response import DataResponse
 from app.schemas.stats import (
-    AggregatedStatsResponse,
     ContainerComparisonResponse,
     ContainerFilesystemResponse,
     ContainerGroupStatsResponse,
     ContainerStatsHistoryResponse,
     DashboardStatsResponse,
     DiskPartitionResponse,
-    ExportStatsResponse,
     NetworkConnectionResponse,
     NetworkInterfaceResponse,
     ProcessResponse,
     PruneStatsResponse,
     ResourceTrendsResponse,
-    ResourceUsageResponse,
     SystemInfoResponse,
     SystemStatsHistoryResponse,
     SystemStatsResponse,
@@ -668,7 +654,7 @@ async def get_top_consumers(
 
 @api_router.get("/stats/compare", response_model=ContainerComparisonResponse, tags=["Statistics"])
 async def compare_containers(
-    container_ids: List[str] = Query(..., description="Container IDs to compare"),
+    container_ids: list[str] = Query(..., description="Container IDs to compare"),
     metric: str = Query("cpu", pattern="^(cpu|memory|network)$"),
     period: str = Query("1h", pattern="^(1h|6h|24h|7d|30d)$"),
     current_user: User = Depends(get_current_user),

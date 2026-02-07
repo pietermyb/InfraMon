@@ -109,15 +109,25 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Create virtual environment
+        run: |
+          python -m venv backend/venv
+          source backend/venv/bin/activate
+          pip install --upgrade pip
+
       - name: Install linting tools
-        run: pip install black flake8 mypy isort
+        working-directory: ./backend
+        run: |
+          source ../backend/venv/bin/activate
+          pip install black isort flake8
 
       - name: Lint backend code
+        working-directory: ./backend
         run: |
-          pip install black flake8 isort
-          black --line-length 100 backend/ backend/alembic/
-          flake8 --config .flake8 backend/
-          isort --check-only backend/ backend/alembic/
+          source ../backend/venv/bin/activate
+          black --check --line-length 100 app/ tests/ alembic/
+          isort --check-only app/ tests/ alembic/
+          flake8 --config .flake8 .
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

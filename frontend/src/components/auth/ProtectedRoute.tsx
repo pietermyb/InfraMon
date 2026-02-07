@@ -1,4 +1,4 @@
-import { useEffect, ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Spinner } from '../ui'
@@ -24,7 +24,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (requiredRole && user && !requiredRole.some(role => (user as { is_superuser: boolean }).is_superuser)) {
+  if (requiredRole && user && !requiredRole.some((_role: string) => (user as { is_superuser: boolean }).is_superuser)) {
     return <Navigate to="/dashboard" replace />
   }
 

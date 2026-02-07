@@ -1,15 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Card, Button, Spinner, Badge } from '../ui'
 import api from '../../api/client'
 import { ComposeInfo, ComposeFileResponse } from '../../types'
-import { FileCode, RefreshCw, Layers, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { FileCode, RefreshCw, Layers, ExternalLink, CheckCircle2 } from 'lucide-react'
 
 interface ComposeDetailsProps {
     containerId: string
 }
 
 export default function ComposeDetails({ containerId }: ComposeDetailsProps) {
-    const queryClient = useQueryClient()
 
     const { data: composeInfo, isLoading: loadingInfo } = useQuery<ComposeInfo>({
         queryKey: ['container-compose-info', containerId],

@@ -1,12 +1,9 @@
-import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -35,7 +32,7 @@ async def create_admin_user():
 
         from passlib.context import CryptContext
         from sqlalchemy import text
-        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+        from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
         engine = create_async_engine(settings.DATABASE_URL, echo=False)
         async_session = async_sessionmaker(engine, expire_on_commit=False)
@@ -82,7 +79,7 @@ async def create_default_groups():
     """Create default container groups if they don't exist."""
     try:
         from sqlalchemy import text
-        from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+        from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
         from app.models.container_group import ContainerGroup
 
