@@ -7,7 +7,6 @@ from app.core.config import settings
 from app.services.docker_service import DockerService
 from app.services.stats_service import StatsService
 
-
 logger = logging.getLogger(__name__)
 
 

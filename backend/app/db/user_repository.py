@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.repository import Repository
 from app.models.user import User
 
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 

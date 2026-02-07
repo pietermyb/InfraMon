@@ -26,7 +26,6 @@ from app.schemas.user import (
     UserResponse,
 )
 
-
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 

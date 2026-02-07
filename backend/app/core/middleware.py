@@ -16,7 +16,6 @@ from app.core.exceptions import (
     ValidationException,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

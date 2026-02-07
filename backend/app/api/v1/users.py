@@ -12,7 +12,6 @@ from app.models.user import User
 from app.schemas.response import ErrorResponse
 from app.schemas.user import UserCreate, UserListResponse, UserResponse, UserUpdate
 
-
 router = APIRouter(prefix="/users", tags=["Users Management"])
 
 

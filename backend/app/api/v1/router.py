@@ -49,7 +49,6 @@ from app.services.container_service import ContainerService
 from app.services.docker_service import DockerService
 from app.services.stats_service import StatsService
 
-
 api_router = APIRouter()
 
 

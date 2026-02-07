@@ -19,7 +19,6 @@ from app.models.audit_log import AuditLog
 from app.models.container import Container
 from app.schemas import ContainerDetailResponse
 
-
 logger = logging.getLogger(__name__)
 
 executor = ThreadPoolExecutor(max_workers=10)

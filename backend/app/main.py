@@ -15,7 +15,6 @@ from app.core.security import (
 )
 from app.db.database import close_db, init_db
 
-
 LOG_LEVEL = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
 logging.basicConfig(
     level=LOG_LEVEL,

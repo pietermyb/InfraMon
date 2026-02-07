@@ -10,7 +10,6 @@ from sqlalchemy.pool import StaticPool
 from app.db.database import Base, get_db
 from app.main import app
 
-
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 

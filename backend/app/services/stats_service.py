@@ -15,7 +15,6 @@ from app.models.container_stats import ContainerStats
 from app.models.system_stats import SystemStats
 from app.services.docker_service import DockerService
 
-
 logger = logging.getLogger(__name__)
 
 

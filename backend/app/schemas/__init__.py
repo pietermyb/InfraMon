@@ -57,7 +57,6 @@ from app.schemas.user import (
     UserUpdate,
 )
 
-
 __all__ = [
     # User schemas
     "UserBase",
